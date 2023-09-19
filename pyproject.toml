@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "finance-dashboard"
+version = "0.1.0"
+description = ""
+authors = ["thomastunc <thomastunc@hotmail.com>"]
+readme = "README.md"
+packages = [{include = "finance_dashboard"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+bunq-sdk = "^1.14.18"
+python-dotenv = "^1.0.0"
+google-cloud-bigquery = "^3.11.4"
+pandas = "^2.1.0"
+pandas-gbq = "^0.19.2"
+google-auth = "^2.23.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
