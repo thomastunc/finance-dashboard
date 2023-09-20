@@ -29,15 +29,25 @@ def store_data_in_bigquery(df, schema_id, table_id):
 
 
 def bunq_etl():
-    bunq = Bunq(os.getenv('BUNQ_API_KEY'), os.getenv('BUNQ_CONFIGURATION_FILE_PROD'))
+    bunq = Bunq(
+        os.getenv('BUNQ_API_KEY'),
+        os.getenv('BUNQ_CONFIGURATION_FILE_PROD')
+    )
     accounts = bunq.retrieve_accounts()
     accounts['date'] = today
     store_data_in_bigquery(accounts, "bank", "bunq")
 
 
 def degiro_etl():
-    degiro = DeGiro()
+    degiro = DeGiro(
+        os.getenv("DEGIRO_USERNAME"),
+        os.getenv("DEGIRO_PASSWORD"),
+        os.getenv("DEGIRO_INT_ACCOUNT"),
+        os.getenv("DEGIRO_TOTP")
+    )
     stocks = degiro.retrieve_stocks()
+    degiro.logout()
+
     stocks['date'] = today
     store_data_in_bigquery(stocks, "stock", "degiro")
 
