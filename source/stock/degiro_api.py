@@ -46,21 +46,20 @@ class DeGiro:
             stock_metadata = self.search_stock(product_id)
 
             currency = stock_metadata['data'][product_id]['currency']
-            c = CurrencyConverter()
+            cc = CurrencyConverter()
 
             purchase_price = portfolio_df['breakEvenPrice'][item]
             actual_price = portfolio_df['price'][item]
             total_value = portfolio_df['value'][item]
-
 
             if currency == 'EUR':
                 purchase_price_eur = purchase_price
                 actual_price_eur = actual_price
                 total_value_eur = total_value
             else:
-                purchase_price_eur = c.convert(purchase_price, currency, 'EUR')
-                actual_price_eur = c.convert(actual_price, currency, 'EUR')
-                total_value_eur = c.convert(total_value, currency, 'EUR')
+                purchase_price_eur = cc.convert(purchase_price, currency, 'EUR')
+                actual_price_eur = cc.convert(actual_price, currency, 'EUR')
+                total_value_eur = cc.convert(total_value, currency, 'EUR')
 
             rows.append({
                 "company_name": stock_metadata['data'][product_id]['name'],
@@ -74,6 +73,24 @@ class DeGiro:
                 "actual_price_eur": actual_price_eur,
                 "total_value_eur": total_value_eur
             })
+
+        return pd.DataFrame(rows)
+
+    def retrieve_account(self):
+        request_list = Update.RequestList()
+        request_list.values.extend([Update.Request(option=Update.Option.TOTALPORTFOLIO, last_updated=0)])
+
+        update = self.trading_api.get_update(request_list=request_list, raw=False)
+        update_dict = pb_handler.message_to_dict(message=update)
+
+        client_details_table = self.trading_api.get_client_details()
+
+        rows = [{
+            "account_name": "Flatex",
+            "iban": client_details_table['data']['flatexBankAccount']['iban'],
+            "balance": float(update_dict['total_portfolio']['values']['totalCash']),
+            "currency": update_dict['total_portfolio']['values']['cashFundCompensationCurrency']
+        }]
 
         return pd.DataFrame(rows)
 

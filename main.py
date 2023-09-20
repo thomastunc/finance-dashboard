@@ -45,11 +45,17 @@ def degiro_etl():
         os.getenv("DEGIRO_INT_ACCOUNT"),
         os.getenv("DEGIRO_TOTP")
     )
+
     stocks = degiro.retrieve_stocks()
+    account = degiro.retrieve_account()
+
     degiro.logout()
 
     stocks['date'] = today
+    account['date'] = today
+
     store_data_in_bigquery(stocks, "stock", "degiro")
+    store_data_in_bigquery(account, "bank", "flatex")
 
 
 def main():
