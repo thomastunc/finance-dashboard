@@ -2,7 +2,7 @@ import pandas_gbq
 
 
 class Connector:
-    def store_data(self, metadata, df):
+    def store_data(self, df, metadata):
         raise NotImplementedError
 
 
@@ -11,7 +11,7 @@ class BigQueryConnector(Connector):
         self.credentials = credentials
         self.project_id = project_id
 
-    def store_data(self, metadata, df):
+    def store_data(self, df, metadata):
         schema_id = metadata['schema_id']
         table_id = metadata['table_id']
 

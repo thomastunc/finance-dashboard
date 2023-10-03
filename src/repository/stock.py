@@ -31,5 +31,5 @@ class DeGiroRepository:
 
         self.connector.store_data(df, metadata)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def logout(self):
         self.degiro.logout()
