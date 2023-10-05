@@ -19,6 +19,7 @@ currencyconverter = "^0.17.11"
 mospy-wallet = "^0.4.2"
 moralis = "^0.1.39"
 moneywagon = "^1.22.3"
+cryptoapis = "^1.8.0"
 
 
 
