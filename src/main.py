@@ -67,6 +67,11 @@ class Main:
             {"address": os.getenv("METAMASK_WALLET_ADDRESS"), "chain": "polygon"}
         )
         repo.get_and_store_wallet(
+            "Coinbase Wallet",
+            "evm",
+            {"address": os.getenv("COINBASE_WALLET_ADDRESS"), "chain": "eth"}
+        )
+        repo.get_and_store_wallet(
             "Helium",
             "sol",
             {"address": os.getenv("HELIUM_WALLET_ADDRESS"), "network": "mainnet"}
