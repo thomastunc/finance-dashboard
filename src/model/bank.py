@@ -10,10 +10,9 @@ from bunq.sdk.model.generated.endpoint import MonetaryAccount
 
 
 class Bunq:
-    def __init__(self, api_key, configuration_file):
+    def __init__(self, api_key: str, configuration_file: str):
         self.api_key = api_key
         self.configuration_file = configuration_file
-
         self.api_context = self.create_or_restore_api_context()
 
     def retrieve_accounts(self):
@@ -31,7 +30,7 @@ class Bunq:
                     iban = self.get_alias(account)
 
                     rows.append({
-                        "account_name": account.description,
+                        "name": account.description,
                         "iban": iban,
                         "balance": float(account.balance.value),
                         "currency": account.currency

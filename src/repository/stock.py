@@ -1,35 +1,30 @@
 from datetime import datetime
 
-from src.connector.connector import Connector
 from src.model.stock import DeGiro
+from src.repository import Repository
 
 
-class DeGiroRepository:
-    def __init__(self, username, password, int_account, totp, connector: Connector):
+class DeGiroRepository(Repository):
+    def __init__(self, config: dict, username: str, password: str, int_account: str, totp: str):
+        super().__init__(config)
         self.degiro = DeGiro(username, password, int_account, totp)
-        self.connector = connector
 
-    def get_and_store_stocks(self):
+    def get_and_store_stocks(self, source: str):
         df = self.degiro.retrieve_stocks()
-        df['date'] = datetime.now().date()
+        df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
-        metadata = {
-            "schema_id": "stock",
-            "table_id": "degiro"
-        }
+        df.insert(0, "source", source)
+        df.insert(0, "date", datetime.now().date())
+        self.connector.store_data(df, self.STOCK)
 
-        self.connector.store_data(df, metadata)
-
-    def get_and_store_account(self):
+    def get_and_store_account(self, source: str):
         df = self.degiro.retrieve_account()
-        df['date'] = datetime.now().date()
+        df = self.convert_currencies(df, ["balance"])
 
-        metadata = {
-            "schema_id": "bank",
-            "table_id": "flatex"
-        }
+        df.insert(0, "source", source)
+        df.insert(0, "date", datetime.now().date())
 
-        self.connector.store_data(df, metadata)
+        self.connector.store_data(df, self.BANK)
 
     def logout(self):
         self.degiro.logout()

@@ -1,21 +1,20 @@
 from datetime import datetime
 
-from src.connector.connector import Connector
 from src.model.bank import Bunq
+from src.repository import Repository
 
 
-class BunqRepository:
-    def __init__(self, api_key, configuration_file, connector: Connector):
+class BunqRepository(Repository):
+
+    def __init__(self, config: dict, api_key: str, configuration_file: str):
+        super().__init__(config)
         self.bunq = Bunq(api_key, configuration_file)
-        self.connector = connector
 
-    def get_and_store_accounts(self):
+    def get_and_store_accounts(self, source: str):
         df = self.bunq.retrieve_accounts()
-        df['date'] = datetime.now().date()
+        df = self.convert_currencies(df, ["balance"])
 
-        metadata = {
-            "schema_id": "bank",
-            "table_id": "bunq"
-        }
+        df.insert(0, "source", source)
+        df.insert(0, "date", datetime.now().date())
 
-        self.connector.store_data(df, metadata)
+        self.connector.store_data(df, self.BANK)

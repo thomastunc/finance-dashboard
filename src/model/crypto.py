@@ -1,25 +1,23 @@
 import json
 import math
 
+import pandas as pd
 import requests
 from urllib.parse import quote
 
 from moralis import evm_api
 
+COINMARKETCAP_BASE_URL = "https://pro-api.coinmarketcap.com"
+
 
 class Crypto:
-    def __init__(self, coinmarketcap_api_key):
+    def __init__(self, coinmarketcap_api_key: str):
         self.coinmarketcap_api_key = coinmarketcap_api_key
-        self.base_url = 'https://pro-api.coinmarketcap.com'
+        self.base_url = COINMARKETCAP_BASE_URL
 
-    def get_crypto_price(self, symbol, currency='EUR'):
-        params = {
-            'symbol': symbol,
-            'convert': currency,
-        }
-        headers = {
-            'X-CMC_PRO_API_KEY': self.coinmarketcap_api_key,
-        }
+    def get_crypto_price(self, symbol: str, currency: str):
+        params = {'symbol': symbol, 'convert': currency}
+        headers = {'X-CMC_PRO_API_KEY': self.coinmarketcap_api_key}
 
         try:
             endpoint = '/v1/cryptocurrency/quotes/latest'
@@ -37,75 +35,86 @@ class Crypto:
 
 
 class Web3(Crypto):
-    def __init__(self, coinmarketcap_api_key, web3_api_key):
+    def __init__(self, coinmarketcap_api_key: str, web3_api_key: str):
         super().__init__(coinmarketcap_api_key)
         self.web3_api_key = web3_api_key
 
     def get_balance_from_address(self, params):
-        return evm_api.token.get_wallet_token_balances(
-            api_key=self.api_key,
+        balances = evm_api.token.get_wallet_token_balances(
+            api_key=self.web3_api_key,
             params=params,
         )
 
+        # TODO: fix this
+        return None
+
 
 class Cosmos(Crypto):
-    def __init__(self, coinmarketcap_api_key, api, lcd, rpc, denom):
+    def __init__(self, coinmarketcap_api_key: str, api_url: str, lcd_url: str, rpc_url: str):
         super().__init__(coinmarketcap_api_key)
-        self.api = api
-        self.lcd = lcd
-        self.rpc = rpc
-        self.denom = denom
+        self.api_url = api_url
+        self.lcd_url = lcd_url
+        self.rpc_url = rpc_url
 
-    def get_balances_from_address(self, address):
-        responses = []
-        endpoint = '/cosmos/bank/v1beta1/balances/'
-        try:
-            results = json.loads(requests.get(self.lcd + endpoint + address, timeout=60).content)
-            responses += results['balances']
-            pagination = results['pagination']['next_key']
-            while pagination is not None:
-                results = json.loads(
-                    requests.get(self.lcd + endpoint + '?pagination.key=' + quote(str(pagination)), timeout=60).content)
-                responses += results['balances']
-                pagination = results['pagination']['next_key']
-            return responses
-        except Exception:
-            raise Exception
-
-    def retrieve_crypto(self, address):
+    def retrieve_wallet(self, address, currency: str = 'EUR'):
         balances = self.get_balances_from_address(address)
         rows = []
 
         for balance in balances:
-            symbol = self.get_symbol_by_denom(balance['denom'])
+            metadata = self.get_coin_metadata(denom=balance['denom'])
             amount = balance['amount']
 
-            if symbol:
-                price = self.get_crypto_price(symbol)
-                exponent = self.get_exponent(symbol)
+            if metadata:
+                current_value = self.get_crypto_price(metadata['symbol'], currency)
+                exponent = metadata.get('exponent', 0)
                 amount = float(amount) / math.pow(10, exponent)
-                total_value = amount * price
+                portfolio_value = amount * current_value
 
-                rows.append({
-                    "symbol": symbol,
-                    "amount": amount,
-                    "price": price,
-                    "total_value": total_value
-                })
+                if portfolio_value > 1:
+                    rows.append({
+                        "name": metadata['name'],
+                        "symbol": metadata['symbol'],
+                        "amount": amount,
+                        "current_value": current_value,
+                        "portfolio_value": portfolio_value,
+                        "currency": currency
+                    })
 
-    def get_symbol_by_denom(self, denom):
-        denom = self.denom if denom is None else denom
-        endpoint = '/search/v1/symbol?denom='
-        try:
-            response = json.loads(requests.get(self.api + endpoint + denom, timeout=60).content)['symbol']
-            return response if response != '' else None
-        except Exception:
-            raise Exception
+        return pd.DataFrame(rows)
 
-    def get_exponent(self, symbol):
-        endpoint = f'/tokens/v2/{symbol}'
-        try:
-            response = json.loads(requests.get(self.api + endpoint, timeout=60).content)[0]
-            return response.get("exponent", 0)
-        except Exception:
-            raise Exception
+    def retrieve_pools(self, address):
+        balances = self.get_balances_from_pool()
+        print(balances)
+        return None
+
+    def get_balances_from_address(self, address):
+        responses = []
+
+        endpoint = '/cosmos/bank/v1beta1/balances/'
+        results = json.loads(requests.get(self.lcd_url + endpoint + address, timeout=60).content)
+        responses += results['balances']
+        pagination = results['pagination']['next_key']
+
+        while pagination is not None:
+            results = json.loads(
+                requests.get(
+                    self.lcd_url + endpoint + '?pagination.key=' + quote(str(pagination)),
+                    timeout=60).content)
+            responses += results['balances']
+            pagination = results['pagination']['next_key']
+
+        return responses
+
+    def get_balances_from_pool(self):
+        endpoint = '/cosmos/distribution/v1beta1/community_pool'
+        return json.loads(requests.get(self.lcd_url + endpoint, timeout=60).content)
+
+    def get_coin_metadata(self, symbol=None, denom=None):
+        if denom:
+            endpoint = '/search/v1/symbol?denom='
+            response = json.loads(requests.get(self.api_url + endpoint + denom, timeout=60).content)
+            symbol = response.get("symbol", None)
+        if symbol:
+            endpoint = f'/tokens/v2/{symbol}'
+            return json.loads(requests.get(self.api_url + endpoint, timeout=60).content)[0]
+        return None

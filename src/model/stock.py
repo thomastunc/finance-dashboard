@@ -6,9 +6,8 @@ from degiro_connector.trading.api import API
 from degiro_connector.trading.models.trading_pb2 import Credentials, Update, ProductSearch, ProductsInfo
 
 
-class DeGiro:
+class DeGiro():
     def __init__(self, username, password, int_account, totp):
-        # SETUP TRADING API
         self.trading_api = API(credentials=Credentials(
             username=username,
             password=password,
@@ -46,32 +45,18 @@ class DeGiro:
             stock_metadata = self.search_stock(product_id)
 
             currency = stock_metadata['data'][product_id]['currency']
-            cc = CurrencyConverter()
-
-            purchase_price = portfolio_df['breakEvenPrice'][item]
-            actual_price = portfolio_df['price'][item]
-            total_value = portfolio_df['value'][item]
-
-            if currency == 'EUR':
-                purchase_price_eur = purchase_price
-                actual_price_eur = actual_price
-                total_value_eur = total_value
-            else:
-                purchase_price_eur = cc.convert(purchase_price, currency, 'EUR')
-                actual_price_eur = cc.convert(actual_price, currency, 'EUR')
-                total_value_eur = cc.convert(total_value, currency, 'EUR')
+            purchase_value = portfolio_df['breakEvenPrice'][item]
+            current_value = portfolio_df['price'][item]
+            portfolio_value = portfolio_df['value'][item]
 
             rows.append({
-                "company_name": stock_metadata['data'][product_id]['name'],
+                "name": stock_metadata['data'][product_id]['name'],
                 "symbol": stock_metadata['data'][product_id]['symbol'],
-                "count": int(portfolio_df['size'][item]),
-                "purchase_price": purchase_price,
-                "actual_price": actual_price,
-                "total_value": total_value,
-                "currency": currency,
-                "purchase_price_eur": purchase_price_eur,
-                "actual_price_eur": actual_price_eur,
-                "total_value_eur": total_value_eur
+                "amount": int(portfolio_df['size'][item]),
+                "purchase_value": purchase_value,
+                "current_value": current_value,
+                "portfolio_value": portfolio_value,
+                "currency": currency
             })
 
         return pd.DataFrame(rows)
@@ -86,7 +71,7 @@ class DeGiro:
         client_details_table = self.trading_api.get_client_details()
 
         rows = [{
-            "account_name": "Flatex",
+            "name": "Flatex",
             "iban": client_details_table['data']['flatexBankAccount']['iban'],
             "balance": float(update_dict['total_portfolio']['values']['totalCash']),
             "currency": update_dict['total_portfolio']['values']['cashFundCompensationCurrency']

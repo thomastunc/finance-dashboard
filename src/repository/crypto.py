@@ -1,46 +1,52 @@
 from datetime import datetime
 
-from src.connector.connector import Connector
 from src.model.crypto import Web3, Cosmos
+from src.repository import Repository
+
+OSMOSIS_ZONE_API_URL = "https://api.osmosis.zone"
+OSMOSIS_ZONE_LCD_URL = "https://lcd.osmosis.zone"
+OSMOSIS_ZONE_RPC_URL = "https://rpc.osmosis.zone"
 
 
-class Web3Repository:
-    def __init__(self, coinmarketcap_api_key, web3_api_key, connector: Connector):
+class Web3Repository(Repository):
+    def __init__(self, config: dict, coinmarketcap_api_key: str, web3_api_key: str):
+        super().__init__(config)
         self.web3 = Web3(coinmarketcap_api_key, web3_api_key)
-        self.connector = connector
 
-    def get_and_store_wallet_balance(self, address, chain):
+    def get_and_store_wallet(self, source: str, address: str, chain: str):
         df = self.web3.get_balance_from_address({"address": address, "chain": chain})
-        df['date'] = datetime.now().date()
+        df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
-        metadata = {
-            "schema_id": "crypto",
-            "table_id": "metamask"
-        }
-        self.connector.store_data(df, metadata)
+        df.insert(0, "source", source)
+        df.insert(0, "date", datetime.now().date())
+
+        self.connector.store_data(df, self.CRYPTO)
 
 
-class CosmosRepository:
-    def __init__(self, coinmarketcap_api_key, connector):
+class CosmosRepository(Repository):
+    def __init__(self, config: dict, coinmarketcap_api_key: str):
+        super().__init__(config)
         self.cosmos = Cosmos(
             coinmarketcap_api_key,
-            api="https://api.osmosis.zone",
-            lcd="https://lcd.osmosis.zone",
-            rpc="https://rpc.osmosis.zone",
-            denom='uosmo'
+            OSMOSIS_ZONE_API_URL,
+            OSMOSIS_ZONE_LCD_URL,
+            OSMOSIS_ZONE_RPC_URL
         )
-        self.connector = connector
 
-    def get_and_store_wallet_balance(self, address):
-        df = self.cosmos.get_balances_from_address(address)
-        df['date'] = datetime.now().date()
+    def get_and_store_wallet(self, source: str, address: str):
+        df = self.cosmos.retrieve_wallet(address)
+        df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
-        metadata = {
-            "schema_id": "crypto",
-            "table_id": "metamask"
-        }
-        self.connector.store_data(df, metadata)
+        df.insert(0, "source", source)
+        df.insert(0, "date", datetime.now().date())
 
-    def get_and_store_pool_balance(self, address):
-        print(address)
-        return None
+        self.connector.store_data(df, self.CRYPTO)
+
+    def get_and_store_pools(self, source: str, address: str):
+        df = self.cosmos.retrieve_pools(address)
+        df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
+
+        df.insert(0, "source", source)
+        df.insert(0, "date", datetime.now().date())
+
+        self.connector.store_data(df, self.CRYPTO)

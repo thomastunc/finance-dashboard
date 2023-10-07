@@ -1,0 +1,77 @@
+import os
+
+from currency_converter import CurrencyConverter
+from dotenv import load_dotenv
+
+from src.connector.connector import BigQueryConnector
+
+from src.repository.bank import BunqRepository
+from src.repository.stock import DeGiroRepository
+from src.repository.crypto import Web3Repository
+from src.repository.crypto import CosmosRepository
+
+load_dotenv()
+
+
+class Main:
+    def __init__(self):
+        self.config = {
+            "connector": BigQueryConnector(
+                os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+                os.getenv("PROJECT_ID"),
+                os.getenv("SCHEMA_ID")
+            ),
+            "converter": CurrencyConverter(
+                ref_currency=os.getenv("PREFERRED_CURRENCY")
+            )
+        }
+
+    def run(self):
+        self.bunq()
+        self.degiro()
+        self.web3()
+        self.cosmos()
+
+    def bunq(self):
+        br = BunqRepository(
+            self.config,
+            os.getenv("BUNQ_API_KEY"),
+            os.getenv("BUNQ_CONFIGURATION_FILE_PROD")
+        )
+        br.get_and_store_accounts("bunq")
+
+    def degiro(self):
+        repo = DeGiroRepository(
+            self.config,
+            os.getenv("DEGIRO_USERNAME"),
+            os.getenv("DEGIRO_PASSWORD"),
+            os.getenv("DEGIRO_INT_ACCOUNT"),
+            os.getenv("DEGIRO_TOTP")
+        )
+        repo.get_and_store_stocks("degiro")
+        repo.get_and_store_account("flatex")
+        repo.logout()
+
+    def web3(self):
+        repo = Web3Repository(
+            self.config,
+            os.getenv("COINMARKETCAP_API_KEY"),
+            os.getenv("MORALIS_API_KEY")
+        )
+        repo.get_and_store_wallet(
+            "metamask",
+            os.getenv("METAMASK_WALLET_ADDRESS"),
+            os.getenv("METAMASK_CHAIN")
+        )
+
+    def cosmos(self):
+        repo = CosmosRepository(
+            self.config,
+            os.getenv("COINMARKETCAP_API_KEY")
+        )
+        repo.get_and_store_wallet("keplr", os.getenv("KEPLR_WALLET_ADDRESS"))
+        repo.get_and_store_pools("keplr", os.getenv("KEPLR_WALLET_ADDRESS"))
+
+
+if __name__ == '__main__':
+    Main().run()
