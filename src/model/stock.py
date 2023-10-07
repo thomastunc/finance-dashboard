@@ -1,12 +1,11 @@
 import pandas as pd
-from currency_converter import CurrencyConverter
 
 from degiro_connector.core.helpers import pb_handler
 from degiro_connector.trading.api import API
 from degiro_connector.trading.models.trading_pb2 import Credentials, Update, ProductSearch, ProductsInfo
 
 
-class DeGiro():
+class DeGiro:
     def __init__(self, username, password, int_account, totp):
         self.trading_api = API(credentials=Credentials(
             username=username,

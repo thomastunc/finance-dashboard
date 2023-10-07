@@ -7,7 +7,7 @@ from src.connector.connector import BigQueryConnector
 
 from src.repository.bank import BunqRepository
 from src.repository.stock import DeGiroRepository
-from src.repository.crypto import Web3Repository
+from src.repository.crypto import Web3Repository, CoinbaseRepository
 from src.repository.crypto import CosmosRepository
 
 load_dotenv()
@@ -23,7 +23,8 @@ class Main:
             ),
             "converter": CurrencyConverter(
                 ref_currency=os.getenv("PREFERRED_CURRENCY")
-            )
+            ),
+            "coinmarketcap_api_key": os.getenv("COINMARKETCAP_API_KEY")
         }
 
     def run(self):
@@ -31,6 +32,7 @@ class Main:
         self.degiro()
         self.web3()
         self.cosmos()
+        self.coinbase()
 
     def bunq(self):
         br = BunqRepository(
@@ -53,21 +55,18 @@ class Main:
         repo.logout()
 
     def web3(self):
-        repo = Web3Repository(
-            self.config,
-            os.getenv("COINMARKETCAP_API_KEY"),
-            os.getenv("MORALIS_API_KEY")
-        )
+        repo = Web3Repository(self.config, os.getenv("MORALIS_API_KEY"))
         repo.get_and_store_wallet("Metamask", os.getenv("METAMASK_WALLET_ADDRESS"), "eth")
         repo.get_and_store_wallet("Metamask", os.getenv("METAMASK_WALLET_ADDRESS"), "polygon")
 
     def cosmos(self):
-        repo = CosmosRepository(
-            self.config,
-            os.getenv("COINMARKETCAP_API_KEY")
-        )
+        repo = CosmosRepository(self.config)
         repo.get_and_store_wallet("Keplr", os.getenv("OSMOSIS_WALLET_ADDRESS"))
         repo.get_and_store_pools("Keplr", os.getenv("OSMOSIS_WALLET_ADDRESS"))
+
+    def coinbase(self):
+        repo = CoinbaseRepository(self.config, os.getenv("COINBASE_API_KEY"), os.getenv("COINBASE_API_SECRET"))
+        repo.get_and_store_wallet("Coinbase")
 
 
 if __name__ == '__main__':
