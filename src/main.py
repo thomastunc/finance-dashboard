@@ -27,9 +27,9 @@ class Main:
         }
 
     def run(self):
-        # self.bunq()
+        self.bunq()
         # self.degiro()
-        # self.web3()
+        self.web3()
         self.cosmos()
 
     def bunq(self):
@@ -58,11 +58,8 @@ class Main:
             os.getenv("COINMARKETCAP_API_KEY"),
             os.getenv("MORALIS_API_KEY")
         )
-        repo.get_and_store_wallet(
-            "Metamask",
-            os.getenv("METAMASK_WALLET_ADDRESS"),
-            os.getenv("METAMASK_CHAIN")
-        )
+        repo.get_and_store_wallet("Metamask", os.getenv("METAMASK_WALLET_ADDRESS"), "eth")
+        repo.get_and_store_wallet("Metamask", os.getenv("METAMASK_WALLET_ADDRESS"), "polygon")
 
     def cosmos(self):
         repo = CosmosRepository(

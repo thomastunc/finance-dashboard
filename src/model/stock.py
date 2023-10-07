@@ -55,7 +55,7 @@ class DeGiro():
                 "amount": int(portfolio_df['size'][item]),
                 "purchase_value": purchase_value,
                 "current_value": current_value,
-                "portfolio_value": portfolio_value,
+                "portfolio_value": round(portfolio_value, 2),
                 "currency": currency
             })
 

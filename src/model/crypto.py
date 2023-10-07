@@ -15,7 +15,7 @@ class Crypto:
         self.coinmarketcap_api_key = coinmarketcap_api_key
         self.base_url = COINMARKETCAP_BASE_URL
 
-    def get_crypto_price(self, symbol: str, currency: str):
+    def get_crypto_currency_metadata(self, symbol: str, currency: str):
         params = {'symbol': symbol, 'convert': currency}
         headers = {'X-CMC_PRO_API_KEY': self.coinmarketcap_api_key}
 
@@ -25,7 +25,10 @@ class Crypto:
             data = response.json()
 
             if 'data' in data and symbol in data['data']:
-                return data['data'][symbol]['quote'][currency]['price']
+                return {
+                    "name": data['data'][symbol]['name'],
+                    "price": data['data'][symbol]['quote'][currency]['price']
+                }
             else:
                 return None
 
@@ -39,14 +42,35 @@ class Web3(Crypto):
         super().__init__(coinmarketcap_api_key)
         self.web3_api_key = web3_api_key
 
-    def get_balance_from_address(self, params):
+    def retrieve_wallet(self, params: dict, currency: str):
         balances = evm_api.token.get_wallet_token_balances(
             api_key=self.web3_api_key,
             params=params,
         )
 
-        # TODO: fix this
-        return None
+        rows = []
+        for balance in balances:
+            if not balance['possible_spam']:
+                metadata = self.get_crypto_currency_metadata(balance['symbol'], currency)
+                name = metadata['name']
+                current_value = metadata['price']
+                amount = balance['balance']
+                exponent = balance.get('decimals', 0)
+                amount = float(amount) / math.pow(10, exponent)
+                portfolio_value = amount * current_value
+
+                if portfolio_value > 1:
+                    rows.append({
+                        "name": name,
+                        "type": "Balance",
+                        "symbol": balance['symbol'],
+                        "amount": amount,
+                        "current_value": current_value,
+                        "portfolio_value": round(portfolio_value, 2),
+                        "currency": currency
+                    })
+
+        return pd.DataFrame(rows)
 
 
 class Cosmos(Crypto):
@@ -65,7 +89,7 @@ class Cosmos(Crypto):
             amount = balance['amount']
 
             if metadata:
-                current_value = self.get_crypto_price(metadata['symbol'], currency)
+                current_value = self.get_crypto_currency_metadata(metadata['symbol'], currency)['price']
                 exponent = metadata.get('exponent', 0)
                 amount = float(amount) / math.pow(10, exponent)
                 portfolio_value = amount * current_value
@@ -77,7 +101,7 @@ class Cosmos(Crypto):
                         "symbol": metadata['symbol'],
                         "amount": amount,
                         "current_value": current_value,
-                        "portfolio_value": portfolio_value,
+                        "portfolio_value": round(portfolio_value, 2),
                         "currency": currency
                     })
 
@@ -93,7 +117,7 @@ class Cosmos(Crypto):
             amount = self.calculate_pool_amount(defi['denom'], defi['amount'])
 
             if metadata:
-                current_value = self.get_crypto_price(metadata['secondary_symbol'], currency)
+                current_value = self.get_crypto_currency_metadata(metadata['secondary_symbol'], currency)['price']
                 exponent = metadata.get('exponent', 0)
                 amount = float(amount) / math.pow(10, exponent)
                 portfolio_value = amount * current_value
@@ -105,7 +129,7 @@ class Cosmos(Crypto):
                         "symbol": f"{metadata['primary_symbol']}/{metadata['secondary_symbol']}",
                         "amount": amount,
                         "current_value": current_value,
-                        "portfolio_value": portfolio_value,
+                        "portfolio_value": round(portfolio_value, 2),
                         "currency": currency
                     })
 

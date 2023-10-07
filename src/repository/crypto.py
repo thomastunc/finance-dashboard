@@ -14,7 +14,7 @@ class Web3Repository(Repository):
         self.web3 = Web3(coinmarketcap_api_key, web3_api_key)
 
     def get_and_store_wallet(self, source: str, address: str, chain: str):
-        df = self.web3.get_balance_from_address({"address": address, "chain": chain})
+        df = self.web3.retrieve_wallet({"address": address, "chain": chain}, self.converter.ref_currency)
         df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
         df.insert(0, "source", source)
