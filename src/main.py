@@ -56,8 +56,21 @@ class Main:
 
     def web3(self):
         repo = Web3Repository(self.config, os.getenv("MORALIS_API_KEY"))
-        repo.get_and_store_wallet("Metamask", os.getenv("METAMASK_WALLET_ADDRESS"), "eth")
-        repo.get_and_store_wallet("Metamask", os.getenv("METAMASK_WALLET_ADDRESS"), "polygon")
+        repo.get_and_store_wallet(
+            "Metamask",
+            "evm",
+            {"address": os.getenv("METAMASK_WALLET_ADDRESS"), "chain": "eth"}
+        )
+        repo.get_and_store_wallet(
+            "Metamask",
+            "evm",
+            {"address": os.getenv("METAMASK_WALLET_ADDRESS"), "chain": "polygon"}
+        )
+        repo.get_and_store_wallet(
+            "Helium",
+            "sol",
+            {"address": os.getenv("HELIUM_WALLET_ADDRESS"), "network": "mainnet"}
+        )
 
     def cosmos(self):
         repo = CosmosRepository(self.config)

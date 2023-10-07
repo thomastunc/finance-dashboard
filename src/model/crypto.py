@@ -5,9 +5,8 @@ import pandas as pd
 import requests
 from urllib.parse import quote
 
-from moralis import evm_api
+from moralis import evm_api, sol_api
 
-import coinbase
 from coinbase.wallet.client import Client
 
 COINMARKETCAP_BASE_URL = "https://pro-api.coinmarketcap.com"
@@ -45,7 +44,34 @@ class Web3(Crypto):
         super().__init__(coinmarketcap_api_key)
         self.web3_api_key = web3_api_key
 
-    def retrieve_wallet(self, params: dict, currency: str):
+    def retrieve_sol_wallet(self, params: dict, currency: str):
+        balances = sol_api.account.get_portfolio(
+            api_key=self.web3_api_key,
+            params=params,
+        )['tokens']
+
+        rows = []
+        for balance in balances:
+            metadata = self.get_crypto_currency_metadata(balance['symbol'], currency)
+            name = metadata['name']
+            current_value = metadata['price']
+            amount = float(balance['amount'])
+            portfolio_value = amount * current_value
+
+            if portfolio_value > 1:
+                rows.append({
+                    "name": name,
+                    "type": "Balance",
+                    "symbol": balance['symbol'],
+                    "amount": amount,
+                    "current_value": current_value,
+                    "portfolio_value": round(portfolio_value, 2),
+                    "currency": currency
+                })
+
+        return pd.DataFrame(rows)
+
+    def retrieve_evm_wallet(self, params: dict, currency: str):
         balances = evm_api.token.get_wallet_token_balances(
             api_key=self.web3_api_key,
             params=params,
