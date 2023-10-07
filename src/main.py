@@ -28,7 +28,7 @@ class Main:
 
     def run(self):
         self.bunq()
-        # self.degiro()
+        self.degiro()
         self.web3()
         self.cosmos()
 
