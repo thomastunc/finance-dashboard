@@ -72,7 +72,7 @@ class Main:
             {"address": os.getenv("COINBASE_WALLET_ADDRESS"), "chain": "eth"}
         )
         repo.get_and_store_wallet(
-            "Helium",
+            "Helium Wallet",
             "sol",
             {"address": os.getenv("HELIUM_WALLET_ADDRESS"), "network": "mainnet"}
         )
