@@ -34,7 +34,7 @@ class CosmosRepository(Repository):
         )
 
     def get_and_store_wallet(self, source: str, address: str):
-        df = self.cosmos.retrieve_wallet(address)
+        df = self.cosmos.retrieve_wallet(address, self.converter.ref_currency)
         df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
         df.insert(0, "source", source)
@@ -43,7 +43,7 @@ class CosmosRepository(Repository):
         self.connector.store_data(df, self.CRYPTO)
 
     def get_and_store_pools(self, source: str, address: str):
-        df = self.cosmos.retrieve_pools(address)
+        df = self.cosmos.retrieve_osmosis_pools(address, self.converter.ref_currency)
         df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
         df.insert(0, "source", source)

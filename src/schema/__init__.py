@@ -34,6 +34,7 @@ def crypto():
         {"name": "date", "type": "DATE"},
         {"name": "source", "type": "STRING"},
         {"name": "name", "type": "STRING"},
+        {"name": "type", "type": "STRING"},
         {"name": "symbol", "type": "STRING"},
         {"name": "amount", "type": "FLOAT"},
         {"name": "purchase_value", "type": "FLOAT"},

@@ -27,9 +27,9 @@ class Main:
         }
 
     def run(self):
-        self.bunq()
-        self.degiro()
-        self.web3()
+        # self.bunq()
+        # self.degiro()
+        # self.web3()
         self.cosmos()
 
     def bunq(self):
@@ -38,7 +38,7 @@ class Main:
             os.getenv("BUNQ_API_KEY"),
             os.getenv("BUNQ_CONFIGURATION_FILE_PROD")
         )
-        br.get_and_store_accounts("bunq")
+        br.get_and_store_accounts("Bunq")
 
     def degiro(self):
         repo = DeGiroRepository(
@@ -48,8 +48,8 @@ class Main:
             os.getenv("DEGIRO_INT_ACCOUNT"),
             os.getenv("DEGIRO_TOTP")
         )
-        repo.get_and_store_stocks("degiro")
-        repo.get_and_store_account("flatex")
+        repo.get_and_store_stocks("DeGiro")
+        repo.get_and_store_account("Flatex")
         repo.logout()
 
     def web3(self):
@@ -59,7 +59,7 @@ class Main:
             os.getenv("MORALIS_API_KEY")
         )
         repo.get_and_store_wallet(
-            "metamask",
+            "Metamask",
             os.getenv("METAMASK_WALLET_ADDRESS"),
             os.getenv("METAMASK_CHAIN")
         )
@@ -69,8 +69,8 @@ class Main:
             self.config,
             os.getenv("COINMARKETCAP_API_KEY")
         )
-        repo.get_and_store_wallet("keplr", os.getenv("KEPLR_WALLET_ADDRESS"))
-        repo.get_and_store_pools("keplr", os.getenv("KEPLR_WALLET_ADDRESS"))
+        repo.get_and_store_wallet("Keplr", os.getenv("OSMOSIS_WALLET_ADDRESS"))
+        repo.get_and_store_pools("Keplr", os.getenv("OSMOSIS_WALLET_ADDRESS"))
 
 
 if __name__ == '__main__':

@@ -56,7 +56,7 @@ class Cosmos(Crypto):
         self.lcd_url = lcd_url
         self.rpc_url = rpc_url
 
-    def retrieve_wallet(self, address, currency: str = 'EUR'):
+    def retrieve_wallet(self, address, currency):
         balances = self.get_balances_from_address(address)
         rows = []
 
@@ -73,6 +73,7 @@ class Cosmos(Crypto):
                 if portfolio_value > 1:
                     rows.append({
                         "name": metadata['name'],
+                        "type": "Balance",
                         "symbol": metadata['symbol'],
                         "amount": amount,
                         "current_value": current_value,
@@ -82,10 +83,33 @@ class Cosmos(Crypto):
 
         return pd.DataFrame(rows)
 
-    def retrieve_pools(self, address):
-        balances = self.get_balances_from_pool()
-        print(balances)
-        return None
+    def retrieve_osmosis_pools(self, address, currency):
+        defis = self.get_balances_from_pool(address)
+        rows = []
+
+        for defi in defis:
+            pool_id = defi['denom'].split('/')[-1]
+            metadata = self.get_osmosis_pool_metadata(pool_id)
+            amount = self.calculate_pool_amount(defi['denom'], defi['amount'])
+
+            if metadata:
+                current_value = self.get_crypto_price(metadata['secondary_symbol'], currency)
+                exponent = metadata.get('exponent', 0)
+                amount = float(amount) / math.pow(10, exponent)
+                portfolio_value = amount * current_value
+
+                if portfolio_value > 1:
+                    rows.append({
+                        "name": f"{metadata['primary_symbol']} / {metadata['secondary_symbol']} Pool",
+                        "type": "DeFi",
+                        "symbol": f"{metadata['primary_symbol']}/{metadata['secondary_symbol']}",
+                        "amount": amount,
+                        "current_value": current_value,
+                        "portfolio_value": portfolio_value,
+                        "currency": currency
+                    })
+
+        return pd.DataFrame(rows)
 
     def get_balances_from_address(self, address):
         responses = []
@@ -105,9 +129,10 @@ class Cosmos(Crypto):
 
         return responses
 
-    def get_balances_from_pool(self):
-        endpoint = '/cosmos/distribution/v1beta1/community_pool'
-        return json.loads(requests.get(self.lcd_url + endpoint, timeout=60).content)
+    def get_balances_from_pool(self, address):
+        endpoint = '/osmosis/superfluid/v1beta1/total_delegation_by_delegator/'
+        results = json.loads(requests.get(self.lcd_url + endpoint + address, timeout=60).content)
+        return results['total_delegated_coins']
 
     def get_coin_metadata(self, symbol=None, denom=None):
         if denom:
@@ -118,3 +143,24 @@ class Cosmos(Crypto):
             endpoint = f'/tokens/v2/{symbol}'
             return json.loads(requests.get(self.api_url + endpoint, timeout=60).content)[0]
         return None
+
+    def get_osmosis_pool_metadata(self, pool_id=None):
+        if pool_id:
+            endpoint = f'/pools/v2/{pool_id}'
+            response = json.loads(requests.get(self.api_url + endpoint, timeout=60).content)
+
+            metadata_primary_coin = response[0]
+            metadata_secondary_coin = response[1]
+
+            return {
+                "primary_symbol": metadata_primary_coin['symbol'],
+                "secondary_symbol": metadata_secondary_coin['symbol'],
+                "exponent": 6
+            }
+        return None
+
+    def calculate_pool_amount(self, denom: str, amount: str):
+        endpoint = "/osmosis/superfluid/v1beta1/asset_multiplier?denom="
+        response = json.loads(requests.get(self.lcd_url + endpoint + denom, timeout=60).content)
+        multiplier = response['osmo_equivalent_multiplier']['multiplier']
+        return float(amount) * float(multiplier) * 2
