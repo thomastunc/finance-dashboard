@@ -4,7 +4,7 @@ from currency_converter import CurrencyConverter
 from dotenv import load_dotenv
 
 from src.connector.bigquery import BigQueryConnector
-from src.logger import Logger
+from src.logger.telegram import TelegramLogger
 
 from src.repository.bank.bunq_repository import BunqRepository
 from src.repository.stock.degiro_repository import DeGiroRepository
@@ -26,7 +26,11 @@ class Main:
             "converter": CurrencyConverter(
                 ref_currency=os.getenv("PREFERRED_CURRENCY")
             ),
-            "logger": Logger(),
+            "logger": TelegramLogger(
+                "app.log",
+                os.getenv("TELEGRAM_BOT_TOKEN"),
+                os.getenv("TELEGRAM_CHAT_ID")
+            ),
             "coinmarketcap_api_key": os.getenv("COINMARKETCAP_API_KEY")
         }
 
