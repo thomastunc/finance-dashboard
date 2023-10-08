@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "finance_dashboard"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 bunq-sdk = "^1.14.18"
 python-dotenv = "^1.0.0"
 google-cloud-bigquery = "^3.11.4"
