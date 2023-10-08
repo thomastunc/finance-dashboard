@@ -7,13 +7,22 @@ from src.model.crypto.coinbase import Coinbase
 class CoinbaseRepository(Repository):
     def __init__(self, config: dict, coinbase_api_key: str, coinbase_api_secret: str):
         super().__init__(config)
-        self.coinbase = Coinbase(config["coinmarketcap_api_key"], coinbase_api_key, coinbase_api_secret)
+        self.logger = config["logger"].get_logger(__name__)
 
-    def get_and_store_wallet(self, source: str):
-        df = self.coinbase.retrieve_wallet()
-        df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
+        try:
+            self.coinbase = Coinbase(config["coinmarketcap_api_key"], coinbase_api_key, coinbase_api_secret)
+        except Exception as e:
+            self.logger.error(f"Error while initializing Coinbase: {e}")
 
-        df.insert(0, "source", source)
-        df.insert(0, "date", datetime.now().date())
+    def get_and_store_wallets(self, source: str):
+        try:
+            df = self.coinbase.retrieve_wallet()
+            df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
-        self.connector.store_data(df, self.CRYPTO)
+            df.insert(0, "source", source)
+            df.insert(0, "date", datetime.now().date())
+
+            self.connector.store_data(df, self.CRYPTO)
+            self.logger.info(f"[{source}] Wallets retrieved and stored")
+        except Exception as e:
+            self.logger.error(f"[{source}] Error while retrieving and storing wallets: {e}")

@@ -11,10 +11,13 @@ class Web3(Crypto):
         super().__init__(coinmarketcap_api_key)
         self.web3_api_key = web3_api_key
 
-    def retrieve_sol_wallet(self, params: dict, currency: str):
+    def retrieve_sol_wallet(self, address: str, network: str, currency: str):
         balances = sol_api.account.get_portfolio(
             api_key=self.web3_api_key,
-            params=params,
+            params={
+                "address": address,
+                "network": network
+            },
         )['tokens']
 
         rows = []
@@ -38,10 +41,13 @@ class Web3(Crypto):
 
         return pd.DataFrame(rows)
 
-    def retrieve_evm_wallet(self, params: dict, currency: str):
+    def retrieve_evm_wallet(self, address: str, chain: str, currency: str):
         balances = evm_api.token.get_wallet_token_balances(
             api_key=self.web3_api_key,
-            params=params,
+            params={
+                "address": address,
+                "chain": chain
+            }
         )
 
         rows = []

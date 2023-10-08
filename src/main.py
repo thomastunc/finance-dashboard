@@ -4,6 +4,7 @@ from currency_converter import CurrencyConverter
 from dotenv import load_dotenv
 
 from src.connector.bigquery import BigQueryConnector
+from src.logger import Logger
 
 from src.repository.bank.bunq_repository import BunqRepository
 from src.repository.stock.degiro_repository import DeGiroRepository
@@ -25,6 +26,7 @@ class Main:
             "converter": CurrencyConverter(
                 ref_currency=os.getenv("PREFERRED_CURRENCY")
             ),
+            "logger": Logger(),
             "coinmarketcap_api_key": os.getenv("COINMARKETCAP_API_KEY")
         }
 
@@ -57,25 +59,25 @@ class Main:
 
     def web3(self):
         repo = Web3Repository(self.config, os.getenv("MORALIS_API_KEY"))
-        repo.get_and_store_wallet(
+        repo.get_and_store_evm_wallet(
             "Metamask",
-            "evm",
-            {"address": os.getenv("METAMASK_WALLET_ADDRESS"), "chain": "eth"}
+            os.getenv("METAMASK_WALLET_ADDRESS"),
+            "eth"
         )
-        repo.get_and_store_wallet(
+        repo.get_and_store_evm_wallet(
             "Metamask",
-            "evm",
-            {"address": os.getenv("METAMASK_WALLET_ADDRESS"), "chain": "polygon"}
+            os.getenv("METAMASK_WALLET_ADDRESS"),
+            "polygon"
         )
-        repo.get_and_store_wallet(
+        repo.get_and_store_evm_wallet(
             "Coinbase Wallet",
-            "evm",
-            {"address": os.getenv("COINBASE_WALLET_ADDRESS"), "chain": "eth"}
+            os.getenv("COINBASE_WALLET_ADDRESS"),
+            "eth"
         )
-        repo.get_and_store_wallet(
+        repo.get_and_store_sol_wallet(
             "Helium Wallet",
-            "sol",
-            {"address": os.getenv("HELIUM_WALLET_ADDRESS"), "network": "mainnet"}
+            os.getenv("HELIUM_WALLET_ADDRESS"),
+            "mainnet"
         )
 
     def cosmos(self):
@@ -85,7 +87,7 @@ class Main:
 
     def coinbase(self):
         repo = CoinbaseRepository(self.config, os.getenv("COINBASE_API_KEY"), os.getenv("COINBASE_API_SECRET"))
-        repo.get_and_store_wallet("Coinbase")
+        repo.get_and_store_wallets("Coinbase")
 
 
 if __name__ == '__main__':
