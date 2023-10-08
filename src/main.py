@@ -12,6 +12,8 @@ from src.repository.crypto.web3_repository import Web3Repository
 from src.repository.crypto.coinbase_repository import CoinbaseRepository
 from src.repository.crypto.cosmos_repository import CosmosRepository
 
+from multiprocessing import Process
+
 load_dotenv()
 
 
@@ -35,11 +37,22 @@ class Main:
         }
 
     def run(self):
-        self.bunq()
-        self.degiro()
-        self.web3()
-        self.cosmos()
-        self.coinbase()
+        functions = [
+            self.bunq,
+            self.degiro,
+            self.web3,
+            self.cosmos,
+            self.coinbase
+        ]
+
+        processes = []
+        for function in functions:
+            process = Process(target=function)
+            process.start()
+            processes.append(process)
+
+        for process in processes:
+            process.join()
 
     def bunq(self):
         br = BunqRepository(
