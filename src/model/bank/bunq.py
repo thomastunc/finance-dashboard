@@ -47,14 +47,16 @@ class Bunq:
 
         return api_context
 
-    def get_alias(self, account):
+    @staticmethod
+    def get_alias(account):
         for alias in account.alias:
             if alias.type_ == "IBAN":
                 return alias.value
 
         return None
 
-    def get_account_from_type(self, monetary_account):
+    @staticmethod
+    def get_account_from_type(monetary_account: MonetaryAccount):
         if monetary_account.MonetaryAccountBank is not None:
             return monetary_account.MonetaryAccountBank
         elif monetary_account.MonetaryAccountSavings is not None:

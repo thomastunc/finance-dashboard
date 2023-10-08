@@ -2,11 +2,11 @@ import pandas as pd
 
 from degiro_connector.core.helpers import pb_handler
 from degiro_connector.trading.api import API
-from degiro_connector.trading.models.trading_pb2 import Credentials, Update, ProductSearch, ProductsInfo
+from degiro_connector.trading.models.trading_pb2 import Credentials, Update, ProductsInfo
 
 
 class DeGiro:
-    def __init__(self, username, password, int_account, totp):
+    def __init__(self, username: str, password: str, int_account: str, totp: str):
         self.trading_api = API(credentials=Credentials(
             username=username,
             password=password,
@@ -15,7 +15,7 @@ class DeGiro:
         ))
         self.trading_api.connect()
 
-    def search_stock(self, index_id):
+    def search_stock(self, index_id: str):
         request = ProductsInfo.Request()
         request.products.extend([int(index_id)])
 

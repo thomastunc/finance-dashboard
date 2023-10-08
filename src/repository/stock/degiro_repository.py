@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.model.stock import DeGiro
+from src.model.stock.degiro import DeGiro
 from src.repository import Repository
 
 

@@ -1,12 +1,9 @@
 import pandas_gbq
 from google.oauth2 import service_account
+from pandas import DataFrame
 
 from src import schema
-
-
-class Connector:
-    def store_data(self, df, table_name):
-        raise NotImplementedError
+from src.connector import Connector
 
 
 class BigQueryConnector(Connector):
@@ -15,7 +12,7 @@ class BigQueryConnector(Connector):
         self.project_id = project_id
         self.schema_id = schema_id
 
-    def store_data(self, df, table_name: str):
+    def store_data(self, df: DataFrame, table_name: str):
         pandas_gbq.to_gbq(
             df,
             destination_table=f"{self.project_id}.{self.schema_id}.{table_name}",

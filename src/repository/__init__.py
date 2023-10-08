@@ -1,5 +1,5 @@
 from currency_converter import CurrencyConverter
-from src.connector.connector import Connector
+from src.connector import Connector
 
 
 class Repository:

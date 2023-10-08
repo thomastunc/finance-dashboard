@@ -3,12 +3,13 @@ import os
 from currency_converter import CurrencyConverter
 from dotenv import load_dotenv
 
-from src.connector.connector import BigQueryConnector
+from src.connector.bigquery import BigQueryConnector
 
-from src.repository.bank import BunqRepository
-from src.repository.stock import DeGiroRepository
-from src.repository.crypto import Web3Repository, CoinbaseRepository
-from src.repository.crypto import CosmosRepository
+from src.repository.bank.bunq_repository import BunqRepository
+from src.repository.stock.degiro_repository import DeGiroRepository
+from src.repository.crypto.web3_repository import Web3Repository
+from src.repository.crypto.coinbase_repository import CoinbaseRepository
+from src.repository.crypto.cosmos_repository import CosmosRepository
 
 load_dotenv()
 

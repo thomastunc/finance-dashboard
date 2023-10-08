@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from src.model.bank import Bunq
 from src.repository import Repository
+from src.model.bank.bunq import Bunq
 
 
 class BunqRepository(Repository):
