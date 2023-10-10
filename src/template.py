@@ -107,5 +107,4 @@ class Main:
         repo.get_and_store_wallets("Coinbase")
 
 
-if __name__ == '__main__':
-    Main().run()
+Main().run()

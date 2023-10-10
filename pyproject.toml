@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["thomastunc <thomastunc@hotmail.com>"]
 readme = "README.md"
-packages = [{include = "finance_dashboard"}]
+packages = []
 
 [tool.poetry.dependencies]
 python = "^3.9"
