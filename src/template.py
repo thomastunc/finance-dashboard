@@ -23,7 +23,8 @@ class Main:
             "connector": BigQueryConnector(
                 os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
                 os.getenv("PROJECT_ID"),
-                os.getenv("SCHEMA_ID")
+                os.getenv("SCHEMA_ID"),
+                os.getenv("LOCATION")
             ),
             "converter": CurrencyConverter(
                 ref_currency=os.getenv("PREFERRED_CURRENCY")
@@ -107,4 +108,5 @@ class Main:
         repo.get_and_store_wallets("Coinbase")
 
 
-Main().run()
+if __name__ == '__main__':
+    Main().run()

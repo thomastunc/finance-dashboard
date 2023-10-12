@@ -7,6 +7,9 @@ class Repository:
     STOCK = "stock"
     CRYPTO = "crypto"
 
+    ATTEMPTS = 3
+    DELAY = 10
+
     def __init__(self, config: dict):
         self.connector = config["connector"]
         self.converter = config["converter"]
