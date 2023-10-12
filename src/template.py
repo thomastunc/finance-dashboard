@@ -55,6 +55,12 @@ class Main:
         for process in processes:
             process.join()
 
+        self.config["connector"].calculate_and_store_totals(
+            os.getenv("BQ_ACCOUNT_NAME"),
+            os.getenv("BQ_STOCK_NAME"),
+            os.getenv("BQ_CRYPTO_NAME")
+        )
+
     def bunq(self):
         br = BunqRepository(
             self.config,

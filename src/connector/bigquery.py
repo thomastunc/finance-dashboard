@@ -53,3 +53,42 @@ class BigQueryConnector(Connector):
             return schema.stock()
         elif table_name == "crypto":
             return schema.crypto()
+
+    def calculate_and_store_totals(self, account_name: str, stock_name: str, crypto_name: str):
+        client = bigquery.Client(credentials=self.credentials, location=self.location)
+
+        sql_statements = [
+            f"""
+            CREATE TABLE IF NOT EXISTS {self.schema_id}.total (
+              date DATE,
+              total_balance FLOAT64,
+              source STRING
+            )
+            """,
+            f"""
+            INSERT INTO prd.total (date, total_balance, source)
+            SELECT DATE, SUM(balance) AS total_balance, '{account_name}' AS source
+            FROM {self.schema_id}.bank
+            WHERE DATE = CURRENT_DATE()
+            GROUP BY DATE
+            """,
+            f"""
+            INSERT INTO prd.total (date, total_balance, source)
+            SELECT DATE, SUM(portfolio_value) AS total_balance, '{stock_name}' AS source
+            FROM {self.schema_id}.stock
+            WHERE DATE = CURRENT_DATE()
+            GROUP BY DATE
+            """,
+            f"""
+            INSERT INTO prd.total (date, total_balance, source)
+            SELECT DATE, SUM(portfolio_value) AS total_balance, '{crypto_name}' AS source
+            FROM {self.schema_id}.crypto
+            WHERE DATE = CURRENT_DATE()
+            GROUP BY DATE
+            """
+        ]
+
+        # Execute each SQL statement
+        for sql in sql_statements:
+            query_job = client.query(sql)
+            query_job.result()
