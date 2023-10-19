@@ -30,6 +30,6 @@ class CoinbaseRepository(Repository):
             except Exception as e:
                 self.logger.error(f"[{source}] Error while retrieving and storing wallets: {e}")
                 if i == self.ATTEMPTS - 1:
-                    self.connector.store_data_of_yesterday(self.BANK, source)
+                    self.connector.store_data_of_yesterday(self.CRYPTO, source)
                 else:
                     time.sleep(self.DELAY)
