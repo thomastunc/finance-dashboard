@@ -30,7 +30,7 @@ class DeGiroRepository(Repository):
             except Exception as e:
                 self.logger.error(f"[{source}] Error while retrieving and storing stocks: {e}")
                 if i == self.ATTEMPTS - 1:
-                    self.connector.store_data_of_yesterday(self.BANK, source)
+                    self.connector.store_data_of_yesterday(self.STOCK, source)
                 else:
                     time.sleep(self.DELAY)
 
