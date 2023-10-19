@@ -26,7 +26,7 @@ class Web3Repository(Repository):
             except Exception as e:
                 self.logger.error(f"[{source}] Error while retrieving and storing EVM wallet: {e}")
                 if i == self.ATTEMPTS - 1:
-                    self.connector.store_data_of_yesterday(self.BANK, source)
+                    self.connector.store_data_of_yesterday(self.CRYPTO, source)
                 else:
                     time.sleep(self.DELAY)
 
@@ -45,6 +45,6 @@ class Web3Repository(Repository):
             except Exception as e:
                 self.logger.error(f"[{source}] Error while retrieving and storing Solana wallet: {e}")
                 if i == self.ATTEMPTS - 1:
-                    self.connector.store_data_of_yesterday(self.BANK, source)
+                    self.connector.store_data_of_yesterday(self.CRYPTO, source)
                 else:
                     time.sleep(self.DELAY)
