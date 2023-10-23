@@ -24,21 +24,24 @@ class Cosmos(Crypto):
             amount = balance['amount']
 
             if metadata:
-                current_value = self.get_crypto_currency_metadata(metadata['symbol'], currency)['price']
-                exponent = metadata.get('exponent', 0)
-                amount = float(amount) / math.pow(10, exponent)
-                portfolio_value = amount * current_value
+                currency_metadata = self.get_crypto_currency_metadata(metadata['symbol'], currency)
 
-                if portfolio_value > 1:
-                    rows.append({
-                        "name": metadata['name'],
-                        "type": "Balance",
-                        "symbol": metadata['symbol'],
-                        "amount": amount,
-                        "current_value": current_value,
-                        "portfolio_value": round(portfolio_value, 2),
-                        "currency": currency
-                    })
+                if currency_metadata is not None:
+                    current_value = currency_metadata['price']
+                    exponent = metadata.get('exponent', 0)
+                    amount = float(amount) / math.pow(10, exponent)
+                    portfolio_value = amount * current_value
+
+                    if portfolio_value > 1:
+                        rows.append({
+                            "name": metadata['name'],
+                            "type": "Balance",
+                            "symbol": metadata['symbol'],
+                            "amount": amount,
+                            "current_value": current_value,
+                            "portfolio_value": round(portfolio_value, 2),
+                            "currency": currency
+                        })
 
         return pd.DataFrame(rows)
 
@@ -52,21 +55,24 @@ class Cosmos(Crypto):
             amount = self.calculate_pool_amount(defi['denom'], defi['amount'])
 
             if metadata:
-                current_value = self.get_crypto_currency_metadata(metadata['secondary_symbol'], currency)['price']
-                exponent = metadata.get('exponent', 0)
-                amount = float(amount) / math.pow(10, exponent)
-                portfolio_value = amount * current_value
+                currency_metadata = self.get_crypto_currency_metadata(metadata['secondary_symbol'], currency)
 
-                if portfolio_value > 1:
-                    rows.append({
-                        "name": f"{metadata['primary_symbol']} / {metadata['secondary_symbol']} Pool",
-                        "type": "DeFi",
-                        "symbol": f"{metadata['primary_symbol']}/{metadata['secondary_symbol']}",
-                        "amount": amount,
-                        "current_value": current_value,
-                        "portfolio_value": round(portfolio_value, 2),
-                        "currency": currency
-                    })
+                if currency_metadata is not None:
+                    current_value = currency_metadata['price']
+                    exponent = metadata.get('exponent', 0)
+                    amount = float(amount) / math.pow(10, exponent)
+                    portfolio_value = amount * current_value
+
+                    if portfolio_value > 1:
+                        rows.append({
+                            "name": f"{metadata['primary_symbol']} / {metadata['secondary_symbol']} Pool",
+                            "type": "DeFi",
+                            "symbol": f"{metadata['primary_symbol']}/{metadata['secondary_symbol']}",
+                            "amount": amount,
+                            "current_value": current_value,
+                            "portfolio_value": round(portfolio_value, 2),
+                            "currency": currency
+                        })
 
         return pd.DataFrame(rows)
 

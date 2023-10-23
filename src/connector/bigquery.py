@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas_gbq
 from google.cloud import bigquery
@@ -31,12 +31,13 @@ class BigQueryConnector(Connector):
 
     def store_data_of_yesterday(self, table_name: str, source: str):
         client = bigquery.Client(credentials=self.credentials, location=self.location)
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
 
         # Get yesterday's data based on a SQL query
         query = f"""
         SELECT *
         FROM `{self.project_id}.{self.schema_id}.{table_name}`
-        WHERE date = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+        WHERE date = DATE('{yesterday}')
         AND source = '{source}'
         """
 
