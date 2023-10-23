@@ -84,12 +84,12 @@ class Main:
     def web3(self):
         repo = Web3Repository(self.config, os.getenv("MORALIS_API_KEY"))
         repo.get_and_store_evm_wallet(
-            "Metamask",
+            "Metamask Ethereum",
             os.getenv("METAMASK_WALLET_ADDRESS"),
             "eth"
         )
         repo.get_and_store_evm_wallet(
-            "Metamask",
+            "Metamask Polygon",
             os.getenv("METAMASK_WALLET_ADDRESS"),
             "polygon"
         )
@@ -106,8 +106,8 @@ class Main:
 
     def cosmos(self):
         repo = CosmosRepository(self.config)
-        repo.get_and_store_wallet("Keplr", os.getenv("OSMOSIS_WALLET_ADDRESS"))
-        repo.get_and_store_pools("Keplr", os.getenv("OSMOSIS_WALLET_ADDRESS"))
+        repo.get_and_store_wallet("Keplr Wallet", os.getenv("OSMOSIS_WALLET_ADDRESS"))
+        repo.get_and_store_pools("Osmosis Pools", os.getenv("OSMOSIS_WALLET_ADDRESS"))
 
     def coinbase(self):
         repo = CoinbaseRepository(self.config, os.getenv("COINBASE_API_KEY"), os.getenv("COINBASE_API_SECRET"))
