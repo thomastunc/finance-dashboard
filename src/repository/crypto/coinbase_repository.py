@@ -18,7 +18,7 @@ class CoinbaseRepository(Repository):
     def get_and_store_wallets(self, source: str):
         for i in range(self.ATTEMPTS):
             try:
-                df = self.coinbase.retrieve_wallet()
+                df = self.coinbase.retrieve_wallet(self.converter.ref_currency)
                 df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
                 df.insert(0, "source", source)

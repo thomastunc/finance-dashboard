@@ -10,27 +10,28 @@ class Coinbase(Crypto):
         super().__init__(coinmarketcap_api_key)
         self.client = Client(coinbase_api_key, coinbase_api_secret)
 
-    def retrieve_wallet(self):
+    def retrieve_wallet(self, currency: str):
         accounts = self.client.get_accounts()['data']
         rows = []
 
         for account in accounts:
-            portfolio_value = float(account['native_balance']['amount'])
-            currency = account['native_balance']['currency']
+            amount = float(account['balance']['amount'])
+            symbol = account['balance']['currency']
+            metadata = self.get_crypto_currency_metadata(symbol, currency)
 
-            if portfolio_value > 1:
-                amount = float(account['balance']['amount'])
-                symbol = account['currency']
-                metadata = self.get_crypto_currency_metadata(symbol, currency)
+            if metadata is not None:
+                price = float(metadata['price'])
+                portfolio_value = amount * price
 
-                rows.append({
-                    "name": metadata['name'],
-                    "type": "Balance",
-                    "symbol": symbol,
-                    "amount": amount,
-                    "current_value": metadata['price'],
-                    "portfolio_value": round(portfolio_value, 2),
-                    "currency": currency
-                })
+                if portfolio_value > 1:
+                    rows.append({
+                        "name": metadata['name'],
+                        "type": "Balance",
+                        "symbol": symbol,
+                        "amount": amount,
+                        "current_value": price,
+                        "portfolio_value": round(portfolio_value, 2),
+                        "currency": currency
+                    })
 
         return pd.DataFrame(rows)
