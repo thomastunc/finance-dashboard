@@ -20,7 +20,9 @@ class Coinbase(Crypto):
             metadata = self.get_crypto_currency_metadata(symbol, currency)
 
             if metadata is not None:
-                price = float(metadata['price'])
+                price = float(metadata.get('price', 0))
+                if price is None:
+                    price = 0
                 portfolio_value = amount * price
 
                 if portfolio_value > 1:

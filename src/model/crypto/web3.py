@@ -25,7 +25,9 @@ class Web3(Crypto):
             metadata = self.get_crypto_currency_metadata(balance['symbol'], currency)
             if metadata is not None:
                 name = metadata['name']
-                current_value = metadata['price']
+                current_value = metadata.get('price', 0)
+                if current_value is None:
+                    current_value = 0
                 amount = float(balance['amount'])
                 portfolio_value = amount * current_value
 
@@ -57,7 +59,9 @@ class Web3(Crypto):
                 metadata = self.get_crypto_currency_metadata(balance['symbol'], currency)
                 if metadata is not None:
                     name = metadata['name'] if metadata else balance['name']
-                    current_value = metadata['price'] if metadata else 0
+                    current_value = metadata.get('price', 0)
+                    if current_value is None:
+                        current_value = 0
                     amount = balance['balance']
                     exponent = balance.get('decimals', 0)
                     amount = float(amount) / math.pow(10, exponent)

@@ -27,7 +27,9 @@ class Cosmos(Crypto):
                 currency_metadata = self.get_crypto_currency_metadata(metadata['symbol'], currency)
 
                 if currency_metadata is not None:
-                    current_value = currency_metadata['price']
+                    current_value = currency_metadata.get('price', 0)
+                    if current_value is None:
+                        current_value = 0
                     exponent = metadata.get('exponent', 0)
                     amount = float(amount) / math.pow(10, exponent)
                     portfolio_value = amount * current_value
@@ -58,7 +60,9 @@ class Cosmos(Crypto):
                 currency_metadata = self.get_crypto_currency_metadata(metadata['secondary_symbol'], currency)
 
                 if currency_metadata is not None:
-                    current_value = currency_metadata['price']
+                    current_value = currency_metadata.get('price', 0)
+                    if current_value is None:
+                        current_value = 0
                     exponent = metadata.get('exponent', 0)
                     amount = float(amount) / math.pow(10, exponent)
                     portfolio_value = amount * current_value
