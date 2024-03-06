@@ -20,7 +20,7 @@ class Bunq:
             warnings.simplefilter("ignore")
             BunqContext.load_api_context(self.api_context)
 
-            monetary_accounts = MonetaryAccount.list()
+            monetary_accounts = MonetaryAccount.list(params={"count": "100"})
             rows = []
 
             for monetary_account in monetary_accounts.value:
