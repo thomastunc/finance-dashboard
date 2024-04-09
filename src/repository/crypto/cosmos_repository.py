@@ -5,7 +5,7 @@ from src.repository import Repository
 
 from src.model.crypto.cosmos import Cosmos
 
-OSMOSIS_ZONE_API_URL = "https://api.osmosis.zone"
+OSMOSIS_ZONE_API_URL = "https://api-osmosis.imperator.co"
 OSMOSIS_ZONE_LCD_URL = "https://lcd.osmosis.zone"
 OSMOSIS_ZONE_RPC_URL = "https://rpc.osmosis.zone"
 
