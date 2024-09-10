@@ -15,7 +15,7 @@ pandas-gbq = "^0.19.2"
 google-auth = "^2.34.0"
 degiro-connector = ">=2.0.23"
 bs4 = "^0.0.1"
-currencyconverter = "^0.17.11"
+currencyconverter = "^0.17.30"
 moralis = "^0.1.49"
 coinbase = "^2.1.0"
 
