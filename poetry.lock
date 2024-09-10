@@ -408,30 +408,6 @@ pandas = ["db-dtypes (>=0.3.0,<2.0.0dev)", "pandas (>=1.1.0)", "pyarrow (>=3.0.0
 tqdm = ["tqdm (>=4.7.4,<5.0.0dev)"]
 
 [[package]]
-name = "google-cloud-bigquery-storage"
-version = "2.22.0"
-description = "Google Cloud Bigquery Storage API client library"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "google-cloud-bigquery-storage-2.22.0.tar.gz", hash = "sha256:f6d8c7b3ab9b574c66977fcee9d336e334ad1a3843a722be19123640e7808ea3"},
-    {file = "google_cloud_bigquery_storage-2.22.0-py2.py3-none-any.whl", hash = "sha256:7f11b2ae590a5b3874fb6ddf705a66a070340db238f971cf7b53349eee9ca317"},
-]
-
-[package.dependencies]
-google-api-core = {version = ">=1.34.0,<2.0.dev0 || >=2.11.dev0,<3.0.0dev", extras = ["grpc"]}
-proto-plus = [
-    {version = ">=1.22.2,<2.0.0dev", markers = "python_version >= \"3.11\""},
-    {version = ">=1.22.0,<2.0.0dev", markers = "python_version < \"3.11\""},
-]
-protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0dev"
-
-[package.extras]
-fastavro = ["fastavro (>=0.21.2)"]
-pandas = ["pandas (>=0.21.1)"]
-pyarrow = ["pyarrow (>=0.15.0)"]
-
-[[package]]
 name = "google-cloud-core"
 version = "2.3.3"
 description = "Google Cloud API client core library"
@@ -810,13 +786,13 @@ test = ["hypothesis (>=5.5.3)", "pytest (>=6.0)", "pytest-xdist (>=1.31)"]
 
 [[package]]
 name = "pandas-gbq"
-version = "0.19.2"
+version = "0.23.1"
 description = "Google BigQuery connector for pandas"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "pandas-gbq-0.19.2.tar.gz", hash = "sha256:b0f7fa84a2be0fe767e33a008ca7e4ad9a9e3ac67255fd0a41fc19b503138447"},
-    {file = "pandas_gbq-0.19.2-py2.py3-none-any.whl", hash = "sha256:0ef8da3e4088053a2bea069ed688992a44b52af67dadb97eee494b32a2147563"},
+    {file = "pandas-gbq-0.23.1.tar.gz", hash = "sha256:6a4942b574643af1372360c807616a98b3f9ed9ca328794daa66d4f28af879be"},
+    {file = "pandas_gbq-0.23.1-py2.py3-none-any.whl", hash = "sha256:74165384b6718c75a08cf434fb78f076200aa25d32705c4634eaeedbc4286b6a"},
 ]
 
 [package.dependencies]
@@ -825,14 +801,15 @@ google-api-core = ">=2.10.2,<3.0.0dev"
 google-auth = ">=2.13.0"
 google-auth-oauthlib = ">=0.7.0"
 google-cloud-bigquery = ">=3.3.5,<4.0.0dev"
-google-cloud-bigquery-storage = ">=2.16.2,<3.0.0dev"
 numpy = ">=1.16.6"
+packaging = ">=20.0.0"
 pandas = ">=1.1.4"
 pyarrow = ">=3.0.0"
 pydata-google-auth = ">=1.5.0"
 setuptools = "*"
 
 [package.extras]
+bqstorage = ["google-cloud-bigquery-storage (>=2.16.2,<3.0.0dev)"]
 tqdm = ["tqdm (>=4.23.0)"]
 
 [[package]]
@@ -1388,4 +1365,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "2855aeb66731ae3ff561a89c4472e93415415faa8e5c22ee08fc76a03db4a2fd"
+content-hash = "f424d5c66b0f9428198ec58039ed1632299737a6912d9604a776050b60f71993"
