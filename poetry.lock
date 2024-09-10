@@ -659,21 +659,21 @@ files = [
 
 [[package]]
 name = "moralis"
-version = "0.1.41"
+version = "0.1.49"
 description = "The official Moralis Python SDK"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "moralis-0.1.41-py3-none-any.whl", hash = "sha256:5bc2f523788a558c24b67e5aac31d7dccf1aab2d853d04336accef9df06a8949"},
-    {file = "moralis-0.1.41.tar.gz", hash = "sha256:fbaefa964a2f98ea4c085ea9e61058949f4e0d4f8311b464a6b516427d6c526d"},
+    {file = "moralis-0.1.49-py3-none-any.whl", hash = "sha256:2a92e26f61d57e726f947541fa30950a48ba45bc0e3fb8e489ff5d7adbc64a7c"},
+    {file = "moralis-0.1.49.tar.gz", hash = "sha256:ea73e08344e75be980a8ee61f0c16c6d5262e9c34934520cb7b3725dfd838040"},
 ]
 
 [package.dependencies]
 certifi = ">=14.5.14"
 frozendict = ">=2.3.4,<2.4.0"
-python-dateutil = ">=2.8.2,<2.9.0"
-typing-extensions = ">=4.3.0,<4.4.0"
-urllib3 = ">=1.26.7,<1.27.0"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.3.0"
+urllib3 = ">=1.26.7"
 
 [[package]]
 name = "numpy"
@@ -1388,4 +1388,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f425b7ff770455bd5601d257dfd78405d2a05e90ce617979fc19b5b1b1c3582c"
+content-hash = "b35b30593ddfabddf4daf7f181dae8d34aab9b88eb5dc96363b0ea3dcdf45ed9"
