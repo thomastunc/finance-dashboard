@@ -221,13 +221,13 @@ six = ">=1.9"
 
 [[package]]
 name = "currencyconverter"
-version = "0.17.30"
+version = "0.17.31"
 description = "A currency converter using the European Central Bank data."
 optional = false
 python-versions = ">=3.6.1"
 files = [
-    {file = "CurrencyConverter-0.17.30-py3-none-any.whl", hash = "sha256:b34817788d0c8db7d1b4ddd4e97ffe10e2379b7e3a6a58edb4e1b017f7dcb208"},
-    {file = "currencyconverter-0.17.30.tar.gz", hash = "sha256:fd10e251a86af02ac3f65164011fdd3aaefd4d40086e428dcb04c47390343881"},
+    {file = "CurrencyConverter-0.17.31-py3-none-any.whl", hash = "sha256:2b173185e67720cc52dd110e655298f559e9cd307347bc0712d92cf785c39398"},
+    {file = "currencyconverter-0.17.31.tar.gz", hash = "sha256:4346934361f9ea160f56b49fbf052ba070820b855f5ddf6867a8c0033aa9bcfa"},
 ]
 
 [[package]]
@@ -1458,4 +1458,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f424d5c66b0f9428198ec58039ed1632299737a6912d9604a776050b60f71993"
+content-hash = "0d6847b2beeb46147538ee863b79dd45a4de8065ba5b052e8c48d274a25cd1cc"
