@@ -18,6 +18,7 @@ bs4 = "^0.0.2"
 currencyconverter = "^0.17.32"
 moralis = "^0.1.49"
 coinbase = "^2.1.0"
+wrapt = "^1.16.0"
 
 
 
