@@ -1,26 +1,24 @@
 [tool.poetry]
 name = "finance-dashboard"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["thomastunc <thomastunc@hotmail.com>"]
 readme = "README.md"
 packages = []
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 bunq-sdk = "^1.14.18"
 python-dotenv = "^1.0.1"
 google-cloud-bigquery = "^3.26.0"
 pandas-gbq = "^0.23.2"
 google-auth = "^2.35.0"
-degiro-connector = ">=2.0.23"
 bs4 = "^0.0.2"
 currencyconverter = "^0.17.32"
 moralis = "^0.1.49"
 coinbase = "^2.1.0"
-wrapt = "^1.16.0"
-
-
+degiro-connector = "^3.0.22"
+protobuf = "^5.28.2"
 
 [build-system]
 requires = ["poetry-core"]
