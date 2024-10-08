@@ -1,4 +1,5 @@
 import requests
+import time
 
 COINMARKETCAP_BASE_URL = "https://pro-api.coinmarketcap.com"
 
@@ -18,6 +19,7 @@ class Crypto:
             data = response.json()
 
             if 'data' in data and symbol in data['data']:
+                time.sleep(3)
                 return {
                     "name": data['data'][symbol]['name'],
                     "price": data['data'][symbol]['quote'][currency]['price']
