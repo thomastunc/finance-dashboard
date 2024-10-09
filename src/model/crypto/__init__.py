@@ -15,11 +15,11 @@ class Crypto:
 
         try:
             endpoint = '/v1/cryptocurrency/quotes/latest'
+            time.sleep(3)
             response = requests.get(self.base_url + endpoint, params=params, headers=headers)
             data = response.json()
 
             if 'data' in data and symbol in data['data']:
-                time.sleep(3)
                 return {
                     "name": data['data'][symbol]['name'],
                     "price": data['data'][symbol]['quote'][currency]['price']
