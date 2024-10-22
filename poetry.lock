@@ -225,13 +225,13 @@ six = ">=1.9"
 
 [[package]]
 name = "currencyconverter"
-version = "0.17.32"
+version = "0.17.33"
 description = "A currency converter using the European Central Bank data."
 optional = false
 python-versions = ">=3.6.1"
 files = [
-    {file = "CurrencyConverter-0.17.32-py3-none-any.whl", hash = "sha256:a7b10727d3c6a6afd9a13a91d25e3a1b0c30fef1ab9b376d3b004a26ec819723"},
-    {file = "currencyconverter-0.17.32.tar.gz", hash = "sha256:b0bc67bfad741d50db8df7629608c1d25e728d93177f1acf824ce036a84754d4"},
+    {file = "CurrencyConverter-0.17.33-py3-none-any.whl", hash = "sha256:30bdc91b47e2dce3939f6eebc744fabafd7bed06e286f59077e379d5d3902e7a"},
+    {file = "currencyconverter-0.17.33.tar.gz", hash = "sha256:652b0f817d84aa9c677afd773eb657ccf51fcc53efcd19e4c3859404b5a9a12d"},
 ]
 
 [[package]]
@@ -856,8 +856,8 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
     {version = ">=1.23.2", markers = "python_version == \"3.11\""},
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -890,13 +890,13 @@ xml = ["lxml (>=4.9.2)"]
 
 [[package]]
 name = "pandas-gbq"
-version = "0.23.2"
+version = "0.24.0"
 description = "Google BigQuery connector for pandas"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pandas_gbq-0.23.2-py2.py3-none-any.whl", hash = "sha256:8ea300cb337b1f738896bcd881d611cd95d03c6c83a34eef2d4c8af050f704d5"},
-    {file = "pandas_gbq-0.23.2.tar.gz", hash = "sha256:18a67db0ea3390c362cb8e276769335d128ec8739c1d0814ab5b6fdf3903fd87"},
+    {file = "pandas_gbq-0.24.0-py2.py3-none-any.whl", hash = "sha256:e3e39f4fd8651ced033515e5e63a6c19bc757b26155fac01c4367e1aa74ee122"},
+    {file = "pandas_gbq-0.24.0.tar.gz", hash = "sha256:264415277059821497e74ed0b2240b538cba9646ee627fb4668cac5cf274e4c3"},
 ]
 
 [package.dependencies]
@@ -908,12 +908,13 @@ google-cloud-bigquery = ">=3.4.2,<4.0.0dev"
 numpy = ">=1.18.1"
 packaging = ">=22.0.0"
 pandas = ">=1.1.4"
-pyarrow = ">=3.0.0"
+pyarrow = ">=4.0.0"
 pydata-google-auth = ">=1.5.0"
 setuptools = "*"
 
 [package.extras]
 bqstorage = ["google-cloud-bigquery-storage (>=2.16.2,<3.0.0dev)"]
+geopandas = ["Shapely (>=1.8.4)", "geopandas (>=0.9.0)"]
 tqdm = ["tqdm (>=4.23.0)"]
 
 [[package]]
@@ -1165,8 +1166,8 @@ files = [
 annotated-types = ">=0.6.0"
 pydantic-core = "2.23.4"
 typing-extensions = [
-    {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
     {version = ">=4.6.1", markers = "python_version < \"3.13\""},
+    {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
 ]
 
 [package.extras]
@@ -1663,4 +1664,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "6d5adb5452705269590767f31a7a2b7086e629869fce91279b75ea75181223ed"
+content-hash = "90835adc92d2f185b53eb6c16858b3adbbaa3b054b114175e714735ca167a5c6"
