@@ -18,7 +18,7 @@ currencyconverter = "^0.17.33"
 moralis = "^0.1.49"
 coinbase = "^2.1.0"
 degiro-connector = "^3.0.22"
-protobuf = "^5.28.2"
+protobuf = "^5.28.3"
 
 [build-system]
 requires = ["poetry-core"]
