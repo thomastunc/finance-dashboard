@@ -225,13 +225,13 @@ six = ">=1.9"
 
 [[package]]
 name = "currencyconverter"
-version = "0.17.33"
+version = "0.17.34"
 description = "A currency converter using the European Central Bank data."
 optional = false
 python-versions = ">=3.6.1"
 files = [
-    {file = "CurrencyConverter-0.17.33-py3-none-any.whl", hash = "sha256:30bdc91b47e2dce3939f6eebc744fabafd7bed06e286f59077e379d5d3902e7a"},
-    {file = "currencyconverter-0.17.33.tar.gz", hash = "sha256:652b0f817d84aa9c677afd773eb657ccf51fcc53efcd19e4c3859404b5a9a12d"},
+    {file = "CurrencyConverter-0.17.34-py3-none-any.whl", hash = "sha256:ddfce0d2fe962099afdadfd2dfde0dc051b20f982009553be41eb5608579f734"},
+    {file = "currencyconverter-0.17.34.tar.gz", hash = "sha256:58cfae73bf45598834ee14fc65dc1af52dcc5fdf331357eaf0230db3b74bed23"},
 ]
 
 [[package]]
@@ -344,13 +344,13 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
 
 [[package]]
 name = "google-auth"
-version = "2.35.0"
+version = "2.36.0"
 description = "Google Authentication Library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google_auth-2.35.0-py2.py3-none-any.whl", hash = "sha256:25df55f327ef021de8be50bad0dfd4a916ad0de96da86cd05661c9297723ad3f"},
-    {file = "google_auth-2.35.0.tar.gz", hash = "sha256:f4c64ed4e01e8e8b646ef34c018f8bf3338df0c8e37d8b3bba40e7f574a3278a"},
+    {file = "google_auth-2.36.0-py2.py3-none-any.whl", hash = "sha256:51a15d47028b66fd36e5c64a82d2d57480075bccc7da37cde257fc94177a61fb"},
+    {file = "google_auth-2.36.0.tar.gz", hash = "sha256:545e9618f2df0bcbb7dcbc45a546485b1212624716975a1ea5ae8149ce769ab1"},
 ]
 
 [package.dependencies]
@@ -1664,4 +1664,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "67f345d5c0dc63e9984bea9b659160e0a1aeeff1fac31467e16cf91691b1187f"
+content-hash = "fa9a77eb7626983f489c040565b9b7be4999f286a263e4a32a1a6d8220c845be"
