@@ -225,13 +225,13 @@ six = ">=1.9"
 
 [[package]]
 name = "currencyconverter"
-version = "0.17.34"
+version = "0.18"
 description = "A currency converter using the European Central Bank data."
 optional = false
-python-versions = ">=3.6.1"
+python-versions = ">=3.9"
 files = [
-    {file = "CurrencyConverter-0.17.34-py3-none-any.whl", hash = "sha256:ddfce0d2fe962099afdadfd2dfde0dc051b20f982009553be41eb5608579f734"},
-    {file = "currencyconverter-0.17.34.tar.gz", hash = "sha256:58cfae73bf45598834ee14fc65dc1af52dcc5fdf331357eaf0230db3b74bed23"},
+    {file = "CurrencyConverter-0.18-py3-none-any.whl", hash = "sha256:94917520dfdf21d34960c6fe043c7b339e0ac9329af29cc774bc5d6eeca5a0c7"},
+    {file = "currencyconverter-0.18.tar.gz", hash = "sha256:5488938009eb2d85cf51c19fe59853dcce31a2f61ffd6c936f9be493ef21a2ed"},
 ]
 
 [[package]]
@@ -1664,4 +1664,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "dc428451a4a6ba854168cb97882982a2fde0ab0399dffce8a583d7ae279f60ed"
+content-hash = "1c49d5889309143dffbc381ea9fe4886c667c632466f9c9a3966a48291855087"
