@@ -14,11 +14,11 @@ google-cloud-bigquery = "^3.27.0"
 pandas-gbq = "^0.24.0"
 google-auth = "^2.36.0"
 bs4 = "^0.0.2"
-currencyconverter = "^0.17.34"
+currencyconverter = "^0.18"
 moralis = "^0.1.49"
 coinbase = "^2.1.0"
 degiro-connector = "^3.0.23"
-protobuf = "^5.28.3"
+protobuf = "^5.29.1"
 
 [build-system]
 requires = ["poetry-core"]
