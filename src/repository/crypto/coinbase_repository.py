@@ -6,12 +6,12 @@ from src.model.crypto.coinbase import Coinbase
 
 
 class CoinbaseRepository(Repository):
-    def __init__(self, config: dict, coinbase_api_key: str, coinbase_api_secret: str):
+    def __init__(self, config: dict, coinbase_key_file: str):
         super().__init__(config)
         self.logger = config["logger"].get_logger(__name__)
 
         try:
-            self.coinbase = Coinbase(config["coinmarketcap_api_key"], coinbase_api_key, coinbase_api_secret)
+            self.coinbase = Coinbase(config["coinmarketcap_api_key"], coinbase_key_file)
         except Exception as e:
             self.logger.error(f"Error while initializing Coinbase: {e}")
 

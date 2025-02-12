@@ -1,28 +1,26 @@
 import pandas as pd
 
-from coinbase.wallet.client import Client
+from coinbase.rest import RESTClient
 
 from src.model.crypto import Crypto
 
 
 class Coinbase(Crypto):
-    def __init__(self, coinmarketcap_api_key: str, coinbase_api_key: str, coinbase_api_secret: str):
+    def __init__(self, coinmarketcap_api_key: str, coinbase_key_file: str):
         super().__init__(coinmarketcap_api_key)
-        self.client = Client(coinbase_api_key, coinbase_api_secret)
+        self.client = RESTClient(key_file=coinbase_key_file)
 
     def retrieve_wallet(self, currency: str):
-        accounts = self.client.get_accounts()['data']
+        accounts = self.client.get_accounts(250)['accounts']
         rows = []
 
         for account in accounts:
-            amount = float(account['balance']['amount'])
-            symbol = account['balance']['currency']
+            amount = float(account['available_balance']['value'])
+            symbol = account['available_balance']['currency']
             metadata = self.get_crypto_currency_metadata(symbol, currency)
 
             if metadata is not None:
                 price = float(metadata.get('price', 0))
-                if price is None:
-                    price = 0
                 portfolio_value = amount * price
 
                 if portfolio_value > 1:

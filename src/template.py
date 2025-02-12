@@ -110,7 +110,7 @@ class Main:
         repo.get_and_store_pools("Osmosis Pools", os.getenv("OSMOSIS_WALLET_ADDRESS"))
 
     def coinbase(self):
-        repo = CoinbaseRepository(self.config, os.getenv("COINBASE_API_KEY"), os.getenv("COINBASE_API_SECRET"))
+        repo = CoinbaseRepository(self.config, os.getenv("COINBASE_KEY_FILE"))
         repo.get_and_store_wallets("Coinbase")
 
 

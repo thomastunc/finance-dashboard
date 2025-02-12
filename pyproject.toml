@@ -16,9 +16,9 @@ google-auth = "^2.37.0"
 bs4 = "^0.0.2"
 currencyconverter = "^0.18.1"
 moralis = "^0.1.49"
-coinbase = "^2.1.0"
 degiro-connector = "^3.0.23"
 protobuf = "^5.29.1"
+coinbase-advanced-py = "^1.8.2"
 
 [build-system]
 requires = ["poetry-core"]
