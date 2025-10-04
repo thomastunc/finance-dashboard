@@ -57,5 +57,5 @@ class CoinbaseRepository(Repository):
             self.connector.store_data(df, self.CRYPTO)
             self.logger.info(f"[{source}] Wallets retrieved and stored")
         except Exception:
-            self.logger.exception("[{source}] Error while retrieving and storing wallets")
+            self.logger.exception(f"[{source}] Error while retrieving and storing wallets")
             self.logger.warning(f"[{source}] Failed to retrieve new wallet data, no data will be stored")
