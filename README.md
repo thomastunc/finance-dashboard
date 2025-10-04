@@ -13,24 +13,6 @@ A comprehensive personal finance data aggregation tool that automatically collec
 - **Error Handling & Notifications**: Comprehensive logging with optional Telegram notifications
 - **Scheduled Execution**: Designed for daily automated runs via cron jobs
 
-## 🏗️ Architecture
-
-```
-Finance Dashboard
-├── Data Sources
-│   ├── 🏦 Bunq (Banking)
-│   ├── 📈 DeGiro (Stocks)
-│   ├── 💰 Coinbase (Crypto Exchange)
-│   └── 🌐 Web3 Wallets (DeFi)
-├── Processing Layer
-│   ├── Currency Conversion
-│   ├── Data Validation
-│   └── Error Handling
-└── Storage & Analytics
-    ├── Google BigQuery
-    └── Looker Studio
-```
-
 ## 🚀 Installation and Setup
 
 ### Prerequisites
@@ -54,7 +36,7 @@ Finance Dashboard
    uv sync
    ```
 
-3. **Configure environment:**
+3. **Configure environment variables:**
 
    ```bash
    cp .env.dist .env
@@ -80,9 +62,7 @@ Finance Dashboard
 6. **Run the application:**
 
    ```bash
-   finance-dashboard --config pipeline.yml
-   # OR
-   python -m finance_dashboard --config pipeline.yml
+   uv run finance-dashboard --config pipeline.yml
    ```
 
 ## ⚙️ Configuration
@@ -194,7 +174,8 @@ dashboard_url: https://your-dashboard-url.com
 # In pipeline.yml
 api_key_env: BUNQ_API_KEY
 bot_token_env: TELEGRAM_BOT_TOKEN
-
+```
+```bash
 # In .env file
 BUNQ_API_KEY=your-actual-api-key-here
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
@@ -238,7 +219,7 @@ crontab -e
 Add this line to run daily at midnight:
 
 ```bash
-0 0 * * * cd /path/to/finance-dashboard && /path/to/.venv/bin/finance-dashboard --config pipeline.yml
+0 0 * * * cd /path/to/finance-dashboard && uv run finance-dashboard --config pipeline.yml
 ```
 
 ### Monitoring
@@ -254,9 +235,21 @@ The dashboard can automatically send a daily summary to Telegram after each data
 
 **To enable the daily summary:**
 
-1. Set `TELEGRAM_SEND_SUMMARY=true` in your `.env` file
-2. Optionally set `DASHBOARD_URL` to include a clickable link in the message
-3. Make sure `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are configured
+Configure the logging section in your `pipeline.yml`:
+
+```yaml
+logging:
+  type: telegram
+  telegram:
+    bot_token_env: TELEGRAM_BOT_TOKEN
+    chat_id_env: TELEGRAM_CHAT_ID
+    send_summary: true
+    dashboard_url: https://your-dashboard-url.com
+```
+
+- Set `send_summary: true` to enable daily summaries
+- Optionally set `dashboard_url` to include a clickable link in the message
+- Make sure the environment variables `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set in your `.env` file
 
 Example summary message:
 ```
@@ -277,139 +270,7 @@ Example summary message:
 🔗 Open Dashboard
 ```
 
-## 📁 Project Structure
-```
-
-## � Migration from Old main.py
-
-If you're upgrading from an older version that used a custom `main.py` file:
-
-### Step 1: Backup Your Configuration
-
-```bash
-# Backup your old main.py if needed
-cp main.py main.py.backup
-```
-
-### Step 2: Create Pipeline Configuration
-
-```bash
-# Copy the simple example
-cp examples/pipeline-simple.yml pipeline.yml
-
-# Or the full example with multiple accounts
-cp examples/pipeline-full.yml pipeline.yml
-```
-
-### Step 3: Configure Your Sources
-
-Edit `pipeline.yml` and enable/configure the sources you were using in your old `main.py`.
-
-**Old way (main.py):**
-```python
-def run(self):
-    self._collect_bunq_data()
-    self._collect_degiro_data()
-    self._collect_web3_data()
-```
-
-**New way (pipeline.yml):**
-```yaml
-bank:
-  enabled: true
-  accounts:
-    - name: Bunq
-      type: bunq
-      api_key_env: BUNQ_API_KEY
-      configuration_file: config/bunq_context.json
-
-stock:
-  enabled: true
-  accounts:
-    - name: DeGiro
-      type: degiro
-      username_env: DEGIRO_USERNAME
-      password_env: DEGIRO_PASSWORD
-      int_account_env: DEGIRO_INT_ACCOUNT
-      totp_env: DEGIRO_TOTP
-
-crypto:
-  enabled: true
-  moralis_api_key_env: MORALIS_API_KEY
-  accounts:
-    - name: Metamask
-      type: web3
-      wallet_address_env: METAMASK_WALLET_ADDRESS
-      chains:
-        - eth
-        - polygon
-```
-
-### Step 4: Update Your .env File
-
-Make sure all the environment variables referenced in your `pipeline.yml` exist in your `.env` file.
-See `.env.dist` for examples.
-
-### Step 5: Test Your Configuration
-
-```bash
-# Validate the configuration
-finance-dashboard --config pipeline.yml --validate-only
-
-# Test run
-finance-dashboard --config pipeline.yml
-```
-
-### Step 6: Update Cron Jobs
-
-If you have automated scheduling, update your cron job:
-
-**Old:**
-```bash
-0 0 * * * cd /path/to/finance-dashboard && python main.py
-```
-
-**New:**
-```bash
-0 0 * * * cd /path/to/finance-dashboard && /path/to/.venv/bin/finance-dashboard --config pipeline.yml
-```
-
-### Benefits of the New System
-
-✅ **No Code Changes**: Configure everything in YAML  
-✅ **Multiple Accounts**: Easy to add multiple accounts per source  
-✅ **Environment Variables**: Clear separation of config and credentials  
-✅ **Validation**: Built-in configuration validation  
-✅ **CLI Tool**: Proper command-line interface with help text  
-
-## 📁 Project Structure
-
-```
-finance-dashboard/
-├── config/                      # Configuration files (gitignored)
-│   ├── bunq_context.json
-│   ├── cdp_api_key.json
-│   └── service_account.json
-├── examples/                    # Example configurations
-│   ├── pipeline-simple.yml      # Simple example
-│   └── pipeline-full.yml        # Full example with multiple accounts
-├── logs/                        # Log files (gitignored)
-├── src/finance_dashboard/       # Main package
-│   ├── __main__.py             # CLI entrypoint
-│   ├── main.py                 # Application logic
-│   ├── pipeline_config.py      # Pipeline configuration parser
-│   ├── connector/              # Database connectors
-│   ├── logger/                 # Logging utilities
-│   ├── model/                  # Data models
-│   └── repository/             # Data repositories
-├── .env                        # Environment variables (gitignored)
-├── .env.dist                   # Environment variables template
-├── pipeline.yml                # Your pipeline config (gitignored)
-├── pyproject.toml              # Project dependencies
-└── README.md                   # This file
-```
-
-## �📄 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

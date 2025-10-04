@@ -61,7 +61,7 @@ class DeGiroRepository(Repository):
             self.connector.store_data(df, self.STOCK)
             self.logger.info(f"[{source}] Stocks retrieved and stored")
         except Exception:
-            self.logger.exception("[{source}] Error while retrieving and storing stocks")
+            self.logger.exception(f"[{source}] Error while retrieving and storing stocks")
             self.logger.warning(f"[{source}] Failed to retrieve new stock data, no data will be stored")
 
     def get_and_store_account(self, source: str):
@@ -102,7 +102,7 @@ class DeGiroRepository(Repository):
             self.connector.store_data(df, self.BANK)
             self.logger.info(f"[{source}] Account retrieved and stored")
         except Exception:
-            self.logger.exception("[{source}] Error while retrieving and storing account")
+            self.logger.exception(f"[{source}] Error while retrieving and storing account")
             self.logger.warning(f"[{source}] Failed to retrieve new account data, no data will be stored")
 
     def logout(self):

@@ -1,3 +1,4 @@
+import json
 import logging
 
 import pandas as pd
@@ -28,9 +29,6 @@ class DeGiro:
             raw=True,
         )
 
-        import json
-        import logging
-
         logger = logging.getLogger(__name__)
         logger.debug("=== FULL DEGIRO PRODUCT INFO API RESPONSE ===")
         logger.debug(f"Product ID: {product_id}")
@@ -50,8 +48,6 @@ class DeGiro:
             ],
             raw=True,
         )
-
-        import logging
 
         logger = logging.getLogger(__name__)
 
