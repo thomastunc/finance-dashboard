@@ -53,7 +53,7 @@ class Web3Repository(Repository):
             self.connector.store_data(df, self.CRYPTO)
             self.logger.info(f"[{source}] EVM wallet retrieved and stored")
         except Exception:
-            self.logger.exception("[{source}] Error while retrieving and storing EVM wallet")
+            self.logger.exception(f"[{source}] Error while retrieving and storing EVM wallet")
             self.logger.warning(f"[{source}] Failed to retrieve new EVM wallet data, no data will be stored")
 
     def get_and_store_sol_wallet(self, source: str, address: str, network: str):
