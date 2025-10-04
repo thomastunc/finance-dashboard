@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
@@ -9,10 +8,9 @@ class Logger:
     """Base logger class that creates daily log files in the logs directory."""
 
     def __init__(self, log_file_name=None, log_level=None):
-        # Parse log level from environment or use default
+        # Use provided log level or default to INFO
         if log_level is None:
-            log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
-            log_level = getattr(logging, log_level_str, logging.INFO)
+            log_level = logging.INFO
 
         # Create logs directory if it doesn't exist
         logs_dir = Path("logs")

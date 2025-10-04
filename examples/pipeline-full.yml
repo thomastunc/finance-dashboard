@@ -1,0 +1,113 @@
+# Full Finance Dashboard Pipeline Configuration
+# This example shows all possible configurations with multiple accounts
+
+# Global Settings
+global:
+  log_level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  preferred_currency: EUR
+
+# Database Configuration
+database:
+  connector: bigquery
+  credentials_path: config/service_account.json
+  project_id: your-project-id
+  schema_id: your-schema-id
+  location: europe-west4
+  table_names:
+    accounts: bank-accounts
+    stocks: stocks
+    crypto: crypto
+    total: total
+
+# Logging Configuration
+logging:
+  type: telegram  # Options: telegram, console, file
+  telegram:
+    bot_token_env: TELEGRAM_BOT_TOKEN
+    chat_id_env: TELEGRAM_CHAT_ID
+    send_summary: true
+    dashboard_url: https://your-dashboard-url.com
+
+# Bank Accounts
+bank:
+  enabled: true
+  accounts:
+    # Multiple Bunq accounts can be configured
+    - name: Bunq Personal
+      type: bunq
+      api_key_env: BUNQ_API_KEY_PERSONAL
+      configuration_file: config/bunq_context_personal.json
+    
+    - name: Bunq Business
+      type: bunq
+      api_key_env: BUNQ_API_KEY_BUSINESS
+      configuration_file: config/bunq_context_business.json
+
+# Stock Accounts
+stock:
+  enabled: true
+  accounts:
+    - name: DeGiro Main
+      type: degiro
+      username_env: DEGIRO_USERNAME
+      password_env: DEGIRO_PASSWORD
+      int_account_env: DEGIRO_INT_ACCOUNT
+      totp_env: DEGIRO_TOTP
+    
+    # Example: Second DeGiro account
+    # - name: DeGiro Secondary
+    #   type: degiro
+    #   username_env: DEGIRO_USERNAME_2
+    #   password_env: DEGIRO_PASSWORD_2
+    #   int_account_env: DEGIRO_INT_ACCOUNT_2
+    #   totp_env: DEGIRO_TOTP_2
+
+# Crypto Accounts
+crypto:
+  enabled: true
+  coinmarketcap_api_key_env: COINMARKETCAP_API_KEY
+  moralis_api_key_env: MORALIS_API_KEY
+  
+  accounts:
+    # Coinbase Exchange accounts
+    - name: Coinbase Personal
+      type: coinbase
+      key_file: config/cdp_api_key_personal.json
+    
+    - name: Coinbase Trading
+      type: coinbase
+      key_file: config/cdp_api_key_trading.json
+    
+    # Web3 EVM Wallets (Ethereum, Polygon, etc.)
+    - name: Metamask Main
+      type: web3
+      wallet_address_env: METAMASK_WALLET_ADDRESS
+      chains:
+        - eth
+        - polygon
+        - bsc
+    
+    - name: Metamask Cold Storage
+      type: web3
+      wallet_address_env: METAMASK_COLD_WALLET_ADDRESS
+      chains:
+        - eth
+    
+    - name: Coinbase Wallet
+      type: web3
+      wallet_address_env: COINBASE_WALLET_ADDRESS
+      chains:
+        - eth
+        - polygon
+    
+    # Solana-based wallets
+    - name: Helium Wallet
+      type: web3-solana
+      wallet_address_env: HELIUM_WALLET_ADDRESS
+      network: mainnet
+    
+    # Cosmos-based wallets
+    - name: Osmosis Wallet
+      type: cosmos
+      wallet_address_env: OSMOSIS_WALLET_ADDRESS
+      network: osmosis

@@ -3,6 +3,14 @@
 .env.local
 *.env
 
+# Pipeline configuration (personalized)
+pipeline.yml
+pipeline.yaml
+*pipeline*.yml
+*pipeline*.yaml
+!examples/pipeline*.yml
+!examples/pipeline*.yaml
+
 # IDE
 .idea
 .vscode/
@@ -14,9 +22,6 @@ config/
 *.log
 logs/*.log
 logs/*
-
-# Main script (personalized)
-main.py
 
 __pycache__/
 *.pyc

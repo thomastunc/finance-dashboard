@@ -1,5 +1,4 @@
 import logging
-import os
 
 import requests
 
@@ -9,14 +8,24 @@ from finance_dashboard.logger import Logger
 class TelegramLogger(Logger):
     """Logger that sends error messages to Telegram in addition to file logging."""
 
-    def __init__(self, log_file_name=None, bot_token="", chat_id="", telegram_log_level=logging.ERROR):
-        # Get log level from environment for file logging
-        log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
-        file_log_level = getattr(logging, log_level_str, logging.INFO)
-
-        super().__init__(log_file_name, file_log_level)
+    def __init__(
+        self,
+        log_file_name=None,
+        bot_token="",
+        chat_id="",
+        log_level=logging.INFO,
+        telegram_log_level=logging.ERROR,
+        table_names=None,
+    ):
+        super().__init__(log_file_name, log_level)
         self.bot_token = bot_token
         self.chat_id = chat_id
+        self.table_names = table_names or {
+            "accounts": "bank-accounts",
+            "stocks": "stocks",
+            "crypto": "crypto",
+            "total": "total",
+        }
 
         # Only add Telegram handler if credentials are provided
         if bot_token and chat_id:
@@ -76,7 +85,7 @@ class TelegramLogger(Logger):
 
         # Total section - simplified format
         message_parts.append(
-            f"{total_emoji} <b>{os.getenv('BQ_TOTAL_NAME', 'total')}: </b> €{summary_data['total_today']:,.0f}".replace(
+            f"{total_emoji} <b>{self.table_names.get('total', 'total')}: </b> €{summary_data['total_today']:,.0f}".replace(
                 ",", "."
             )
         )
@@ -89,9 +98,9 @@ class TelegramLogger(Logger):
         )
 
         category_emojis = {
-            os.getenv("BQ_ACCOUNT_NAME", "bank-accounts"): "🏦",
-            os.getenv("BQ_STOCK_NAME", "stocks"): "📈",
-            os.getenv("BQ_CRYPTO_NAME", "crypto"): "🪙",
+            self.table_names.get("accounts", "bank-accounts"): "🏦",
+            self.table_names.get("stocks", "stocks"): "📈",
+            self.table_names.get("crypto", "crypto"): "🪙",
         }
 
         for cat in summary_data["categories"]:

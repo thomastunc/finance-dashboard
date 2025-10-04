@@ -504,6 +504,7 @@ dependencies = [
     { name = "pandas-gbq" },
     { name = "protobuf" },
     { name = "python-dotenv" },
+    { name = "pyyaml" },
     { name = "requests" },
 ]
 
@@ -532,6 +533,7 @@ requires-dist = [
     { name = "pandas-gbq", specifier = ">=0.29.2" },
     { name = "protobuf", specifier = ">=6.32.1" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "requests", specifier = ">=2.32.5" },
 ]
 
