@@ -1,4 +1,5 @@
 import contextlib
+import logging
 from datetime import datetime
 
 import pandas_gbq
@@ -19,6 +20,7 @@ class BigQueryConnector(Connector):
         self.project_id = project_id
         self.schema_id = schema_id
         self.location = location
+        self.logger = logging.getLogger(__name__)
 
     def store_data(self, df: DataFrame, table_name: str):
         """Upsert data into BigQuery table based on unique combination of date, source, and name.
@@ -30,6 +32,9 @@ class BigQueryConnector(Connector):
             return
 
         client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+
+        # Ensure the dataset exists before creating tables
+        self._ensure_dataset_exists(client)
 
         # Check if the target table exists, create it if it doesn't
         self._ensure_table_exists(client, table_name)
@@ -61,6 +66,21 @@ class BigQueryConnector(Connector):
             with contextlib.suppress(Exception):
                 client.delete_table(temp_table_id)
 
+    def _ensure_dataset_exists(self, client: bigquery.Client):
+        """Check if the dataset exists, and create it if it doesn't."""
+        dataset_id = f"{self.project_id}.{self.schema_id}"
+
+        try:
+            # Try to get the dataset - this will raise NotFound if it doesn't exist
+            client.get_dataset(dataset_id)
+        except Exception:
+            # Dataset doesn't exist, create it
+            self.logger.info(f"Dataset `{dataset_id}` does not exist, creating it now")
+            dataset = bigquery.Dataset(dataset_id)
+            dataset.location = self.location
+            client.create_dataset(dataset, exists_ok=True)
+            self.logger.info(f"Dataset `{dataset_id}` created successfully")
+
     def _ensure_table_exists(self, client: bigquery.Client, table_name: str):
         """Check if the table exists, and create it if it doesn't."""
         table_id = f"{self.project_id}.{self.schema_id}.{table_name}"
@@ -78,6 +98,7 @@ class BigQueryConnector(Connector):
         table_id = f"{self.project_id}.{self.schema_id}.{table_name}"
         schema_fields = self._get_bigquery_schema(table_name)
 
+        self.logger.info(f"Table `{table_id}` does not exist, creating it now")
         table = bigquery.Table(table_id, schema=schema_fields)
 
         # Set table clustering for better performance
@@ -85,6 +106,7 @@ class BigQueryConnector(Connector):
             table.clustering_fields = ["date", "source"]
 
         client.create_table(table)
+        self.logger.info(f"Table `{table_id}` created successfully")
 
     def _get_bigquery_schema(self, table_name: str):
         """Convert the schema dictionary to BigQuery schema fields."""
@@ -127,22 +149,77 @@ class BigQueryConnector(Connector):
         else:
             raise ValueError(f"Unknown table name: {table_name}")
 
+    def dataset_exists(self) -> bool:
+        """Check if the dataset exists."""
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+        dataset_id = f"{self.project_id}.{self.schema_id}"
+        try:
+            client.get_dataset(dataset_id)
+            return True
+        except Exception:
+            return False
+
+    def table_exists(self, table_name: str) -> bool:
+        """Check if a table exists."""
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+        table_id = f"{self.project_id}.{self.schema_id}.{table_name}"
+        try:
+            client.get_table(table_id)
+            return True
+        except Exception:
+            return False
+
+    def view_exists(self, view_name: str) -> bool:
+        """Check if a view exists."""
+        return self.table_exists(view_name)  # Views are treated as tables in BigQuery API
+
+    def setup_database(self, account_name: str, stock_name: str, crypto_name: str):
+        """Set up the database schema (dataset, tables, and view) if they don't exist.
+
+        This should be called once at startup to ensure the database structure is in place.
+        """
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+
+        self.logger.info("Starting database setup check")
+
+        # 1. Ensure dataset exists
+        if not self.dataset_exists():
+            self._ensure_dataset_exists(client)
+        else:
+            self.logger.info(f"Dataset `{self.project_id}.{self.schema_id}` already exists")
+
+        # 2. Ensure required tables exist
+        # We need to create them before creating the view that references them
+        self.logger.info("Checking required tables (bank, stock, crypto)")
+        self.ensure_all_tables_exist()
+
+        # 3. Ensure view exists
+        if not self.view_exists("total"):
+            self.logger.info("Creating totals view")
+            self.create_totals_view(account_name, stock_name, crypto_name)
+        else:
+            self.logger.info(f"View `{self.project_id}.{self.schema_id}.total` already exists")
+
+        self.logger.info("Database setup completed successfully")
+
     def create_totals_view(self, account_name: str, stock_name: str, crypto_name: str):
         """Create a regular view that automatically calculates totals from bank, stock, and crypto tables.
 
         This view will automatically reflect changes when the underlying tables are updated.
         Regular views don't have the same restrictions as materialized views.
+        Only creates the view if it doesn't already exist.
         """
         client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
 
-        # Drop existing view if it exists (try both materialized and regular)
-        drop_materialized_view_sql = f"""
-        DROP MATERIALIZED VIEW IF EXISTS `{self.project_id}.{self.schema_id}.total_materialized_view`
-        """
+        # Ensure the dataset exists before creating the view
+        self._ensure_dataset_exists(client)
 
-        drop_view_sql = f"""
-        DROP VIEW IF EXISTS `{self.project_id}.{self.schema_id}.total`
-        """
+        # Check if view already exists
+        if self.view_exists("total"):
+            return  # View already exists, no need to recreate
+
+        view_id = f"{self.project_id}.{self.schema_id}.total"
+        self.logger.info(f"View `{view_id}` does not exist, creating it now")
 
         # Create the regular view that unions all totals
         # ruff: noqa: S608  # SQL injection is not a concern here as we control the values
@@ -152,7 +229,7 @@ class BigQueryConnector(Connector):
         SELECT
             date,
             ROUND(SUM(balance), 2) AS total_balance,
-            @account_name AS source
+            '{account_name}' AS source
         FROM `{self.project_id}.{self.schema_id}.bank`
         GROUP BY date
 
@@ -161,7 +238,7 @@ class BigQueryConnector(Connector):
         SELECT
             date,
             ROUND(SUM(portfolio_value), 2) AS total_balance,
-            @stock_name AS source
+            '{stock_name}' AS source
         FROM `{self.project_id}.{self.schema_id}.stock`
         GROUP BY date
 
@@ -170,32 +247,15 @@ class BigQueryConnector(Connector):
         SELECT
             date,
             ROUND(SUM(portfolio_value), 2) AS total_balance,
-            @crypto_name AS source
+            '{crypto_name}' AS source
         FROM `{self.project_id}.{self.schema_id}.crypto`
         GROUP BY date
         """
 
-        # Execute the SQL statements
-        with contextlib.suppress(Exception):
-            # Try to drop materialized view first
-            query_job = client.query(drop_materialized_view_sql)
-            query_job.result()
-
-        with contextlib.suppress(Exception):
-            # Drop regular view if it exists
-            query_job = client.query(drop_view_sql)
-            query_job.result()
-
-        # Create the new view with parameters
-        job_config = bigquery.QueryJobConfig(
-            query_parameters=[
-                bigquery.ScalarQueryParameter("account_name", "STRING", account_name),
-                bigquery.ScalarQueryParameter("stock_name", "STRING", stock_name),
-                bigquery.ScalarQueryParameter("crypto_name", "STRING", crypto_name),
-            ]
-        )
-        query_job = client.query(create_view_sql, job_config=job_config)
+        # Create the new view
+        query_job = client.query(create_view_sql)
         query_job.result()
+        self.logger.info(f"View `{view_id}` created successfully")
 
     def get_totals(self, start_date: str | None = None, end_date: str | None = None):
         """Query the totals view with optional date filtering.
@@ -295,7 +355,11 @@ class BigQueryConnector(Connector):
         required_tables = ["bank", "stock", "crypto"]
 
         for table_name in required_tables:
-            self._ensure_table_exists(client, table_name)
+            table_id = f"{self.project_id}.{self.schema_id}.{table_name}"
+            if self.table_exists(table_name):
+                self.logger.info(f"Table `{table_id}` already exists")
+            else:
+                self._ensure_table_exists(client, table_name)
 
     def migrate_from_materialized_view(self):
         """Migrate from the old materialized view to the new regular view.
