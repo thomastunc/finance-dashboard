@@ -103,7 +103,20 @@ class TelegramLogger(Logger):
             self.table_names.get("crypto", "crypto"): "🪙",
         }
 
-        for cat in summary_data["categories"]:
+        # Define the desired order: accounts first, then stocks, then crypto
+        category_order = [
+            self.table_names.get("accounts", "bank-accounts"),
+            self.table_names.get("stocks", "stocks"),
+            self.table_names.get("crypto", "crypto"),
+        ]
+
+        # Sort categories according to the defined order
+        sorted_categories = sorted(
+            summary_data["categories"],
+            key=lambda x: category_order.index(x["name"]) if x["name"] in category_order else len(category_order),
+        )
+
+        for cat in sorted_categories:
             # Get emoji for category
             cat_emoji = category_emojis.get(cat["name"], "💼")
             cat_change_emoji = "▲" if cat["change"] >= 0 else "🔻"
