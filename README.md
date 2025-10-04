@@ -106,12 +106,7 @@ Add this line to run daily at midnight:
 
 ### Daily Summary Feature 📊
 
-The dashboard can automatically send a daily summary to Telegram after each data collection run. The summary includes:
-
-- 💰 Total portfolio value (today vs yesterday)
-- 🟢/🔴 Change indicators with percentage
-- 📈 Per-category breakdown (Bank, Stocks, Crypto)
-- 🔗 Optional clickable link to your dashboard
+The dashboard can automatically send a daily summary to Telegram after each data collection run.
 
 **To enable the daily summary:**
 
