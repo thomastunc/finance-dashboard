@@ -106,5 +106,5 @@ class CosmosRepository(Repository):
             self.connector.store_data(df, self.CRYPTO)
             self.logger.info(f"[{source}] Pools retrieved and stored")
         except Exception:
-            self.logger.exception("[{source}] Error while retrieving and storing pools")
+            self.logger.exception(f"[{source}] Error while retrieving and storing pools")
             self.logger.warning(f"[{source}] Failed to retrieve new pool data, no data will be stored")
