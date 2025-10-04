@@ -374,3 +374,93 @@ class BigQueryConnector(Connector):
             """
             query_job = client.query(drop_materialized_view_sql)
             query_job.result()
+
+    def get_daily_summary(self):
+        """Get a summary of today's totals compared to yesterday's totals.
+
+        Returns:
+            dict with:
+                - total_today: Total balance today across all categories
+                - total_yesterday: Total balance yesterday
+                - total_change: Change in total balance
+                - total_change_pct: Percentage change in total balance
+                - categories: List of dicts with per-category breakdown
+                  - name: Category name (e.g., 'Bank', 'Stock', 'Crypto')
+                  - today: Balance today
+                  - yesterday: Balance yesterday
+                  - change: Change in balance
+                  - change_pct: Percentage change
+
+        """
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+
+        # Query to get today's and yesterday's totals per category
+        query = f"""
+        WITH dates AS (
+            SELECT
+                MAX(date) AS today,
+                DATE_SUB(MAX(date), INTERVAL 1 DAY) AS yesterday
+            FROM `{self.project_id}.{self.schema_id}.total`
+        ),
+        today_data AS (
+            SELECT
+                source,
+                SUM(total_balance) AS balance
+            FROM `{self.project_id}.{self.schema_id}.total`
+            WHERE date = (SELECT today FROM dates)
+            GROUP BY source
+        ),
+        yesterday_data AS (
+            SELECT
+                source,
+                SUM(total_balance) AS balance
+            FROM `{self.project_id}.{self.schema_id}.total`
+            WHERE date = (SELECT yesterday FROM dates)
+            GROUP BY source
+        )
+        SELECT
+            COALESCE(t.source, y.source) AS source,
+            COALESCE(t.balance, 0) AS today_balance,
+            COALESCE(y.balance, 0) AS yesterday_balance,
+            COALESCE(t.balance, 0) - COALESCE(y.balance, 0) AS change,
+            CASE
+                WHEN COALESCE(y.balance, 0) > 0
+                THEN ((COALESCE(t.balance, 0) - COALESCE(y.balance, 0)) / y.balance) * 100
+                ELSE 0
+            END AS change_pct
+        FROM today_data t
+        FULL OUTER JOIN yesterday_data y ON t.source = y.source
+        ORDER BY source
+        """
+
+        df = client.query(query).to_dataframe()
+
+        if df.empty:
+            return None
+
+        # Calculate totals
+        total_today = float(df["today_balance"].sum())
+        total_yesterday = float(df["yesterday_balance"].sum())
+        total_change = float(df["change"].sum())
+        total_change_pct = ((total_change / total_yesterday) * 100) if total_yesterday > 0 else 0
+
+        # Build categories list
+        categories = []
+        for _, row in df.iterrows():
+            categories.append(
+                {
+                    "name": row["source"],
+                    "today": float(row["today_balance"]),
+                    "yesterday": float(row["yesterday_balance"]),
+                    "change": float(row["change"]),
+                    "change_pct": float(row["change_pct"]),
+                }
+            )
+
+        return {
+            "total_today": total_today,
+            "total_yesterday": total_yesterday,
+            "total_change": total_change,
+            "total_change_pct": total_change_pct,
+            "categories": categories,
+        }

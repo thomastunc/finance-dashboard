@@ -41,11 +41,18 @@ class TelegramConfig:
 
     bot_token: str
     chat_id: str
+    send_summary: bool
+    dashboard_url: str
 
     @classmethod
     def from_env(cls) -> "TelegramConfig":
         """Create TelegramConfig from environment variables."""
-        return cls(bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""), chat_id=os.getenv("TELEGRAM_CHAT_ID", ""))
+        return cls(
+            bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
+            chat_id=os.getenv("TELEGRAM_CHAT_ID", ""),
+            send_summary=os.getenv("TELEGRAM_SEND_SUMMARY", "false").lower() == "true",
+            dashboard_url=os.getenv("DASHBOARD_URL", ""),
+        )
 
 
 @dataclass

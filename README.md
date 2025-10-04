@@ -101,7 +101,42 @@ Add this line to run daily at midnight:
 
 - **Logs**: Check daily log files in the `logs/` directory
 - **Telegram**: Receive error notifications via Telegram (if configured)
+- **Daily Summary**: Get a daily summary of your financial portfolio via Telegram (optional)
 - **BigQuery**: Monitor data in your BigQuery dataset
+
+### Daily Summary Feature 📊
+
+The dashboard can automatically send a daily summary to Telegram after each data collection run. The summary includes:
+
+- 💰 Total portfolio value (today vs yesterday)
+- 🟢/🔴 Change indicators with percentage
+- 📈 Per-category breakdown (Bank, Stocks, Crypto)
+- 🔗 Optional clickable link to your dashboard
+
+**To enable the daily summary:**
+
+1. Set `TELEGRAM_SEND_SUMMARY=true` in your `.env` file
+2. Optionally set `DASHBOARD_URL` to include a clickable link in the message
+3. Make sure `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are configured
+
+Example summary message:
+```
+📊 Daily Summary
+
+💰 Total: €50.000
+▲ €500 (+1.01%)
+
+🏦 bank-accounts: €10.000
+▲ €100 (+1.00%)
+
+📈 stocks: €25.000
+🔻 €300 (-1.21%)
+
+🪙 crypto: €15.000
+▲ €100 (+0.67%)
+
+🔗 Open Dashboard
+```
 
 ## 📄 License
 
