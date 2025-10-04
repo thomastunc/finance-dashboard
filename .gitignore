@@ -1,7 +1,21 @@
+# Environment and configuration
 .env
+.env.local
+*.env
+
+# IDE
 .idea
-config
+.vscode/
+
+# Configuration files containing sensitive data
+config/
+
+# Logging
 *.log
+logs/*.log
+logs/*
+
+# Main script (personalized)
 main.py
 
 __pycache__/

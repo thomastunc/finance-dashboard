@@ -1,100 +1,118 @@
-# Finance Dashboard
+# Finance Dashboard 📊
 
-This project is designed for extracting financial data from various sources, e.g. bank accounts, stock providers, and
-cryptocurrency wallets. With the ability to consolidate financial data into a storage service, like Google BigQuery.
+A comprehensive personal finance data aggregation tool that automatically collects and centralizes financial data from multiple sources into Google BigQuery for analysis and visualization.
 
-You can run this code daily to extract the new values of your financial sources and store them in a database. This
-allows you to analyze your financial data over time and gain insights into your financial health. You can also use the
-data for other financial analysis tasks, e.g. budgeting, forecasting, and reporting. For example, I am using this to
-visualize my net worth over time inside Looker Data Studio.
+## 🌟 Features
 
-## Installation and Setup
+- **Multi-Source Data Collection**: Supports banks (Bunq), brokers (DeGiro), crypto exchanges (Coinbase), and Web3 wallets
+- **Automated Currency Conversion**: Converts all amounts to your preferred currency
+- **BigQuery Integration**: Stores data in Google BigQuery for powerful analytics
+- **Daily Logging**: Organized log files by date in the `logs/` directory
+- **Error Handling & Notifications**: Comprehensive logging with optional Telegram notifications
+- **Scheduled Execution**: Designed for daily automated runs via cron jobs
 
-To get started with this project, follow these steps:
+## 🏗️ Architecture
 
-1. Clone the repository:
+```
+Finance Dashboard
+├── Data Sources
+│   ├── 🏦 Bunq (Banking)
+│   ├── 📈 DeGiro (Stocks)
+│   ├── 💰 Coinbase (Crypto Exchange)
+│   └── 🌐 Web3 Wallets (DeFi)
+├── Processing Layer
+│   ├── Currency Conversion
+│   ├── Data Validation
+│   └── Error Handling
+└── Storage & Analytics
+    ├── Google BigQuery
+    └── Looker Studio
+```
 
-   ```shell
+## 🚀 Installation and Setup
+
+### Prerequisites
+
+- Python 3.11 or higher
+- [uv](https://docs.astral.sh/uv/) package manager
+- Google Cloud Platform account (for BigQuery)
+
+### Quick Start
+
+1. **Clone the repository:**
+
+   ```bash
    git clone https://github.com/thomastunc/finance-dashboard.git
    cd finance-dashboard
    ```
 
-2. Install the required dependencies using Poetry:
+2. **Install dependencies:**
 
-   ```shell
-   poetry install
+   ```bash
+   uv sync
    ```
 
-3. Create a copy of the `.env.dist` file and name it `.env`:
+3. **Configure environment:**
 
-   ```shell
+   ```bash
    cp .env.dist .env
-   ```
-
-   Edit the values in the `.env` file to configure your environment variables according to your needs:
-
-   ```shell
+   # Edit .env with your API keys and configuration
    nano .env
    ```
 
-4. If you want to use GCP like me, Set up Google Cloud Platform (GCP) and the following resources:
+4. **Set up Google Cloud BigQuery:**
 
-    - Create a Google BigQuery dataset for storing the data.
-    - Configure and set up a Google Compute Engine instance where you will run the Python scripts.
+   - Create a Google Cloud Project
+   - Enable the BigQuery API
+   - Create a dataset for storing financial data
+   - Download service account credentials to `config/service_account.json`
 
-5. Copy the `template.py` file, which you can use as a base for your own data extraction script:
+5. **Run the application:**
 
-   ```shell
-   cp template.py main.py
-   ```
-
-
-6. Customize the `main.py` file to meet your specific data extraction needs. This file acts as a starting point for your
-   financial data extraction:
-
-   ```shell
-   nano main.py
-   ```
-
-7. Schedule the Python script to run daily on the Google Compute Engine instance using a cron job:
-
-   ```shell
-   crontab -e
-   ```
-
-   Add a line to schedule your script to run daily:
-
-   ```shell
-   0 0 * * * /usr/bin/python3 /path/to/your/main.py
-   ```
-
-## Usage
-
-To use the Finance Dashboard, follow these steps:
-
-1. Execute your customized Python script:
-
-   ```shell
+   ```bash
    python main.py
    ```
 
-2. The script will extract financial data from your configured sources and store it in a connector (e.g. BigQuery).
+## 💻 Usage
 
-3. Analyze and visualize your financial data, for example by connecting Looker Data Studio to your data source.
+### Manual Execution
 
-## Future Improvements
+Run the dashboard manually to collect current financial data:
 
-Some areas for potential improvement:
+```bash
+python main.py
+```
 
-- **Additional Data Sources**: Expand the project to support more external sources for broader financial data coverage.
-- **Additional Connectors**: Add more connectors to support additional data storage services.
-- **Easier Installation and Configuration**: Enhance the setup process to make it even more user-friendly and
-  streamlined.
-- **Historical Data Retrieval**: Implement functionality to retrieve historical data from various sources for
-  comprehensive financial analysis.
+### Automated Scheduling
 
-## Contributions
+For daily automated data collection, set up a cron job:
 
-Contributions to the Finance Dashboard project are highly encouraged and welcome. If you have ideas, feature requests,
-or code improvements, feel free to create a pull request or open an issue on the project's GitHub repository.
+```bash
+crontab -e
+```
+
+Add this line to run daily at midnight:
+
+```bash
+0 0 * * * cd /path/to/finance-dashboard && python main.py
+```
+
+### Monitoring
+
+- **Logs**: Check daily log files in the `logs/` directory
+- **Telegram**: Receive error notifications via Telegram (if configured)
+- **BigQuery**: Monitor data in your BigQuery dataset
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## ⚠️ Disclaimer
+
+This tool is for personal financial data aggregation only. Always:
+
+- Keep your API keys and credentials secure
+- Review the code before running
+- Use at your own risk
+- Comply with your financial institutions' terms of service
 

@@ -1,0 +1,19 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: uv run ruff check --force-exclude --exit-non-zero-on-fix --unsafe-fixes
+        language: system
+        types: [ python ]
+      - id: ruff-format
+        name: ruff-format
+        entry: uv run ruff format --force-exclude
+        language: system
+        types: [ python ]
+      - id: deptry
+        name: deptry
+        entry: uv run deptry src
+        language: system
+        types: [ python ]
+        pass_filenames: false

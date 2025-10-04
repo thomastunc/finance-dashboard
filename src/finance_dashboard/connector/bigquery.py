@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+import contextlib
+from datetime import datetime
 
 import pandas_gbq
 from google.cloud import bigquery
@@ -10,6 +11,8 @@ from finance_dashboard.connector import Connector
 
 
 class BigQueryConnector(Connector):
+    """BigQuery connector for storing and retrieving financial data."""
+
     def __init__(self, credentials_path: str, project_id: str, schema_id: str, location: str):
         self.credentials = service_account.Credentials.from_service_account_file(credentials_path)
 
@@ -18,47 +21,103 @@ class BigQueryConnector(Connector):
         self.location = location
 
     def store_data(self, df: DataFrame, table_name: str):
-        """
-        Upsert data into BigQuery table based on unique combination of date, source, and name.
+        """Upsert data into BigQuery table based on unique combination of date, source, and name.
+
         If a record with the same date, source, and name exists, it will be updated.
         Otherwise, a new record will be inserted.
         """
         if df.empty:
             return
-            
+
         client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
-        
+
+        # Check if the target table exists, create it if it doesn't
+        self._ensure_table_exists(client, table_name)
+
         # First, upload the data to a temporary table
         temp_table_name = f"{table_name}_temp_{int(datetime.now().timestamp())}"
         temp_table_id = f"{self.project_id}.{self.schema_id}.{temp_table_name}"
-        
+
         try:
             # Upload data to temporary table
             pandas_gbq.to_gbq(
                 df,
                 destination_table=temp_table_id,
-                if_exists='replace',
+                if_exists="replace",
                 project_id=self.project_id,
                 credentials=self.credentials,
                 table_schema=self.get_table_schema(table_name),
                 progress_bar=False,
-                location=self.location
+                location=self.location,
             )
-            
+
             # Perform upsert using MERGE statement
             merge_query = self._build_merge_query(table_name, temp_table_name)
             query_job = client.query(merge_query)
             query_job.result()  # Wait for the query to complete
-            
+
         finally:
             # Clean up temporary table
-            try:
+            with contextlib.suppress(Exception):
                 client.delete_table(temp_table_id)
-            except Exception:
-                pass  # Ignore errors during cleanup
+
+    def _ensure_table_exists(self, client: bigquery.Client, table_name: str):
+        """Check if the table exists, and create it if it doesn't."""
+        table_id = f"{self.project_id}.{self.schema_id}.{table_name}"
+
+        try:
+            # Try to get the table - this will raise NotFound if it doesn't exist
+            client.get_table(table_id)
+            # Table exists, no need to log
+        except Exception:
+            # Table doesn't exist, create it
+            self._create_table(client, table_name)
+
+    def _create_table(self, client: bigquery.Client, table_name: str):
+        """Create a BigQuery table with the appropriate schema."""
+        table_id = f"{self.project_id}.{self.schema_id}.{table_name}"
+        schema_fields = self._get_bigquery_schema(table_name)
+
+        table = bigquery.Table(table_id, schema=schema_fields)
+
+        # Set table clustering for better performance
+        if table_name in ["bank", "stock", "crypto"]:
+            table.clustering_fields = ["date", "source"]
+
+        client.create_table(table)
+
+    def _get_bigquery_schema(self, table_name: str):
+        """Convert the schema dictionary to BigQuery schema fields."""
+        schema_dict = self.get_table_schema(table_name)
+        schema_fields = []
+
+        for field in schema_dict:
+            field_type = field["type"]
+            field_mode = field.get("mode", "NULLABLE")
+
+            # Convert pandas_gbq types to BigQuery types
+            if field_type.upper() in ["STRING"]:
+                bq_type = "STRING"
+            elif field_type.upper() in ["FLOAT", "FLOAT64"]:
+                bq_type = "FLOAT64"
+            elif field_type.upper() in ["INTEGER", "INT64"]:
+                bq_type = "INTEGER"
+            elif field_type.upper() == "DATE":
+                bq_type = "DATE"
+            elif field_type.upper() == "DATETIME":
+                bq_type = "DATETIME"
+            elif field_type.upper() == "BOOLEAN":
+                bq_type = "BOOLEAN"
+            else:
+                bq_type = "STRING"  # Default fallback
+
+            schema_fields.append(bigquery.SchemaField(field["name"], bq_type, mode=field_mode))
+
+        return schema_fields
 
     @staticmethod
     def get_table_schema(table_name: str):
+        """Get schema definition for a given table name."""
         if table_name == "bank":
             return schema.bank()
         elif table_name == "stock":
@@ -68,92 +127,155 @@ class BigQueryConnector(Connector):
         else:
             raise ValueError(f"Unknown table name: {table_name}")
 
-    def calculate_and_store_totals(self, account_name: str, stock_name: str, crypto_name: str):
-        client = bigquery.Client(credentials=self.credentials, location=self.location)
-        date = datetime.now().strftime('%Y-%m-%d')
+    def create_totals_view(self, account_name: str, stock_name: str, crypto_name: str):
+        """Create a regular view that automatically calculates totals from bank, stock, and crypto tables.
 
-        sql_statements = [
-            f"""
-            CREATE TABLE IF NOT EXISTS {self.schema_id}.total (
-              date DATE,
-              total_balance FLOAT64,
-              source STRING
-            )
-            """,
-            f"""
-            MERGE `{self.project_id}.{self.schema_id}.total` AS target
-            USING (
-                SELECT DATE, SUM(balance) AS total_balance, '{account_name}' AS source
-                FROM {self.schema_id}.bank
-                WHERE date = DATE('{date}')
-                GROUP BY date
-            ) AS source
-            ON target.date = source.date AND target.source = source.source
-            WHEN MATCHED THEN
-                UPDATE SET total_balance = source.total_balance
-            WHEN NOT MATCHED THEN
-                INSERT (date, total_balance, source)
-                VALUES (source.date, source.total_balance, source.source)
-            """,
-            f"""
-            MERGE `{self.project_id}.{self.schema_id}.total` AS target
-            USING (
-                SELECT DATE, SUM(portfolio_value) AS total_balance, '{stock_name}' AS source
-                FROM {self.schema_id}.stock
-                WHERE date = DATE('{date}')
-                GROUP BY date
-            ) AS source
-            ON target.date = source.date AND target.source = source.source
-            WHEN MATCHED THEN
-                UPDATE SET total_balance = source.total_balance
-            WHEN NOT MATCHED THEN
-                INSERT (date, total_balance, source)
-                VALUES (source.date, source.total_balance, source.source)
-            """,
-            f"""
-            MERGE `{self.project_id}.{self.schema_id}.total` AS target
-            USING (
-                SELECT DATE, SUM(portfolio_value) AS total_balance, '{crypto_name}' AS source
-                FROM {self.schema_id}.crypto
-                WHERE date = DATE('{date}')
-                GROUP BY date
-            ) AS source
-            ON target.date = source.date AND target.source = source.source
-            WHEN MATCHED THEN
-                UPDATE SET total_balance = source.total_balance
-            WHEN NOT MATCHED THEN
-                INSERT (date, total_balance, source)
-                VALUES (source.date, source.total_balance, source.source)
-            """
-        ]
+        This view will automatically reflect changes when the underlying tables are updated.
+        Regular views don't have the same restrictions as materialized views.
+        """
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
 
-        # Execute each SQL statement
-        for sql in sql_statements:
-            query_job = client.query(sql)
+        # Drop existing view if it exists (try both materialized and regular)
+        drop_materialized_view_sql = f"""
+        DROP MATERIALIZED VIEW IF EXISTS `{self.project_id}.{self.schema_id}.total_materialized_view`
+        """
+
+        drop_view_sql = f"""
+        DROP VIEW IF EXISTS `{self.project_id}.{self.schema_id}.total`
+        """
+
+        # Create the regular view that unions all totals
+        # ruff: noqa: S608  # SQL injection is not a concern here as we control the values
+        create_view_sql = f"""
+        CREATE VIEW `{self.project_id}.{self.schema_id}.total`
+        AS
+        SELECT
+            date,
+            ROUND(SUM(balance), 2) AS total_balance,
+            @account_name AS source
+        FROM `{self.project_id}.{self.schema_id}.bank`
+        GROUP BY date
+
+        UNION ALL
+
+        SELECT
+            date,
+            ROUND(SUM(portfolio_value), 2) AS total_balance,
+            @stock_name AS source
+        FROM `{self.project_id}.{self.schema_id}.stock`
+        GROUP BY date
+
+        UNION ALL
+
+        SELECT
+            date,
+            ROUND(SUM(portfolio_value), 2) AS total_balance,
+            @crypto_name AS source
+        FROM `{self.project_id}.{self.schema_id}.crypto`
+        GROUP BY date
+        """
+
+        # Execute the SQL statements
+        with contextlib.suppress(Exception):
+            # Try to drop materialized view first
+            query_job = client.query(drop_materialized_view_sql)
             query_job.result()
 
+        with contextlib.suppress(Exception):
+            # Drop regular view if it exists
+            query_job = client.query(drop_view_sql)
+            query_job.result()
+
+        # Create the new view with parameters
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("account_name", "STRING", account_name),
+                bigquery.ScalarQueryParameter("stock_name", "STRING", stock_name),
+                bigquery.ScalarQueryParameter("crypto_name", "STRING", crypto_name),
+            ]
+        )
+        query_job = client.query(create_view_sql, job_config=job_config)
+        query_job.result()
+
+    def get_totals(self, start_date: str | None = None, end_date: str | None = None):
+        """Query the totals view with optional date filtering.
+
+        Args:
+            start_date: Optional start date in 'YYYY-MM-DD' format
+            end_date: Optional end date in 'YYYY-MM-DD' format
+
+        Returns:
+            DataFrame with the totals data
+
+        """
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+
+        where_clause = ""
+        query_parameters = []
+
+        if start_date and end_date:
+            where_clause = "WHERE date BETWEEN @start_date AND @end_date"
+            query_parameters.extend(
+                [
+                    bigquery.ScalarQueryParameter("start_date", "DATE", start_date),
+                    bigquery.ScalarQueryParameter("end_date", "DATE", end_date),
+                ]
+            )
+        elif start_date:
+            where_clause = "WHERE date >= @start_date"
+            query_parameters.append(bigquery.ScalarQueryParameter("start_date", "DATE", start_date))
+        elif end_date:
+            where_clause = "WHERE date <= @end_date"
+            query_parameters.append(bigquery.ScalarQueryParameter("end_date", "DATE", end_date))
+
+        # ruff: noqa: S608  # SQL injection is not a concern here as we control the values
+        query = f"""
+        SELECT
+            date,
+            source,
+            total_balance
+        FROM `{self.project_id}.{self.schema_id}.total`
+        {where_clause}
+        ORDER BY date DESC, source
+        """
+
+        job_config = bigquery.QueryJobConfig(query_parameters=query_parameters)
+        return client.query(query, job_config=job_config).to_dataframe()
+
     def _build_merge_query(self, table_name: str, temp_table_name: str) -> str:
-        """
-        Build a MERGE query for upsert operations based on the table schema.
+        """Build a MERGE query for upsert operations based on the actual columns in the temp table.
+
         The unique key is the combination of date, source, and name.
-        Assumes table schema is correct and up to date.
+        Only uses columns that exist in both target and source tables.
         """
-        schema = self.get_table_schema(table_name)
-        columns = [field['name'] for field in schema]
-        
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+
+        # Get the actual columns from the temporary table
+        temp_table_id = f"{self.project_id}.{self.schema_id}.{temp_table_name}"
+        temp_table = client.get_table(temp_table_id)
+        source_columns = [field.name for field in temp_table.schema]
+
+        # Get target table schema columns
+        target_schema = self.get_table_schema(table_name)
+        target_columns = [field["name"] for field in target_schema]
+
+        # Only use columns that exist in both source and target
+        common_columns = [col for col in source_columns if col in target_columns]
+
         # Build column lists for the MERGE statement
-        columns_list = ', '.join(columns)
-        insert_values = ', '.join([f"source.{col}" for col in columns])
-        
+        columns_list = ", ".join(common_columns)
+        insert_values = ", ".join([f"source.{col}" for col in common_columns])
+
         # For the UPDATE part, exclude the unique key columns
-        updateable_columns = [col for col in columns if col not in ['date', 'source', 'name']]
-        update_assignments = ', '.join([f"{col} = source.{col}" for col in updateable_columns])
-        
+        updateable_columns = [col for col in common_columns if col not in ["date", "source", "name"]]
+        update_assignments = ", ".join([f"{col} = source.{col}" for col in updateable_columns])
+
+        # ruff: noqa: S608  # SQL injection is not a concern here as we control the values
         merge_query = f"""
         MERGE `{self.project_id}.{self.schema_id}.{table_name}` AS target
         USING `{self.project_id}.{self.schema_id}.{temp_table_name}` AS source
-        ON target.date = source.date 
-           AND target.source = source.source 
+        ON target.date = source.date
+           AND target.source = source.source
            AND target.name = source.name
         WHEN MATCHED THEN
           UPDATE SET {update_assignments}
@@ -161,5 +283,30 @@ class BigQueryConnector(Connector):
           INSERT ({columns_list})
           VALUES ({insert_values})
         """
-        
+
         return merge_query
+
+    def ensure_all_tables_exist(self):
+        """Ensure all required tables (bank, stock, crypto) exist in the dataset.
+
+        Creates them if they don't exist.
+        """
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+        required_tables = ["bank", "stock", "crypto"]
+
+        for table_name in required_tables:
+            self._ensure_table_exists(client, table_name)
+
+    def migrate_from_materialized_view(self):
+        """Migrate from the old materialized view to the new regular view.
+
+        This will drop the old materialized view if it exists.
+        """
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+
+        with contextlib.suppress(Exception):
+            drop_materialized_view_sql = f"""
+            DROP MATERIALIZED VIEW IF EXISTS `{self.project_id}.{self.schema_id}.total_materialized_view`
+            """
+            query_job = client.query(drop_materialized_view_sql)
+            query_job.result()
