@@ -1,4 +1,3 @@
-import time
 import traceback
 from datetime import datetime
 
@@ -29,38 +28,29 @@ class BunqRepository(Repository):
 
     def get_and_store_accounts(self, source: str):
         self.logger.info(f"[{source}] Starting account retrieval and storage process")
-        for i in range(self.ATTEMPTS):
-            try:
-                self.logger.debug(f"[{source}] Attempt {i + 1}/{self.ATTEMPTS}: Retrieving accounts from Bunq")
-                df = self.bunq.retrieve_accounts_safe()
-                self.logger.debug(f"[{source}] Successfully retrieved {len(df)} accounts from Bunq")
-                
-                self.logger.debug(f"[{source}] Converting currencies for balance columns")
-                df = self.convert_currencies(df, ["balance"])
-                
-                df.insert(0, "source", source)
-                df.insert(0, "date", datetime.now().date())
+        try:
+            self.logger.debug(f"[{source}] Retrieving accounts from Bunq")
+            df = self.bunq.retrieve_accounts_safe()
+            self.logger.debug(f"[{source}] Successfully retrieved {len(df)} accounts from Bunq")
+            
+            self.logger.debug(f"[{source}] Converting currencies for balance columns")
+            df = self.convert_currencies(df, ["balance"])
+            
+            df.insert(0, "source", source)
+            df.insert(0, "date", datetime.now().date())
 
-                self.logger.debug(f"[{source}] Storing data to {self.BANK} table")
-                self.connector.store_data(df, self.BANK)
-                self.logger.info(f"[{source}] Accounts retrieved and stored successfully")
-                break
-            except Exception as e:
-                error_details = {
-                    'error_type': type(e).__name__,
-                    'error_message': str(e),
-                    'file': __file__,
-                    'function': 'BunqRepository.get_and_store_accounts',
-                    'line_number': traceback.extract_tb(e.__traceback__)[-1].lineno,
-                    'attempt': f"{i + 1}/{self.ATTEMPTS}",
-                    'source': source,
-                    'stack_trace': traceback.format_exc()
-                }
-                self.logger.error(f"[{source}] Error while retrieving and storing accounts: {error_details}")
-                
-                if i == self.ATTEMPTS - 1:
-                    self.logger.warning(f"[{source}] All {self.ATTEMPTS} attempts failed, storing yesterday's data as fallback")
-                    self.connector.store_data_of_yesterday(self.BANK, source)
-                else:
-                    self.logger.info(f"[{source}] Retrying in {self.DELAY} seconds (attempt {i + 2}/{self.ATTEMPTS})")
-                    time.sleep(self.DELAY)
+            self.logger.debug(f"[{source}] Storing data to {self.BANK} table")
+            self.connector.store_data(df, self.BANK)
+            self.logger.info(f"[{source}] Accounts retrieved and stored successfully")
+        except Exception as e:
+            error_details = {
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'file': __file__,
+                'function': 'BunqRepository.get_and_store_accounts',
+                'line_number': traceback.extract_tb(e.__traceback__)[-1].lineno,
+                'source': source,
+                'stack_trace': traceback.format_exc()
+            }
+            self.logger.error(f"[{source}] Error while retrieving and storing accounts: {error_details}")
+            self.logger.warning(f"[{source}] Failed to retrieve new data, no data will be stored")

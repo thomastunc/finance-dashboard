@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 
 from finance_dashboard.repository import Repository
@@ -22,39 +21,29 @@ class CosmosRepository(Repository):
         )
 
     def get_and_store_wallet(self, source: str, address: str):
-        for i in range(self.ATTEMPTS):
-            try:
-                df = self.cosmos.retrieve_wallet(address, self.converter.ref_currency)
-                df = self.convert_currencies(df, ["current_value", "portfolio_value"])
+        try:
+            df = self.cosmos.retrieve_wallet(address, self.converter.ref_currency)
+            df = self.convert_currencies(df, ["current_value", "portfolio_value"])
 
-                df.insert(0, "source", source)
-                df.insert(0, "date", datetime.now().date())
+            df.insert(0, "source", source)
+            df.insert(0, "date", datetime.now().date())
 
-                self.connector.store_data(df, self.CRYPTO)
-                self.logger.info(f"[{source}] Wallet retrieved and stored")
-                break
-            except Exception as e:
-                self.logger.error(f"[{source}] Error while retrieving and storing wallet: {e}")
-                if i == self.ATTEMPTS - 1:
-                    self.connector.store_data_of_yesterday(self.CRYPTO, source)
-                else:
-                    time.sleep(self.DELAY)
+            self.connector.store_data(df, self.CRYPTO)
+            self.logger.info(f"[{source}] Wallet retrieved and stored")
+        except Exception as e:
+            self.logger.error(f"[{source}] Error while retrieving and storing wallet: {e}")
+            self.logger.warning(f"[{source}] Failed to retrieve new wallet data, no data will be stored")
 
     def get_and_store_pools(self, source: str, address: str):
-        for i in range(self.ATTEMPTS):
-            try:
-                df = self.cosmos.retrieve_osmosis_pools(address, self.converter.ref_currency)
-                df = self.convert_currencies(df, ["current_value", "portfolio_value"])
+        try:
+            df = self.cosmos.retrieve_osmosis_pools(address, self.converter.ref_currency)
+            df = self.convert_currencies(df, ["current_value", "portfolio_value"])
 
-                df.insert(0, "source", source)
-                df.insert(0, "date", datetime.now().date())
+            df.insert(0, "source", source)
+            df.insert(0, "date", datetime.now().date())
 
-                self.connector.store_data(df, self.CRYPTO)
-                self.logger.info(f"[{source}] Pools retrieved and stored")
-                break
-            except Exception as e:
-                self.logger.error(f"[{source}] Error while retrieving and storing pools: {e}")
-                if i == self.ATTEMPTS - 1:
-                    self.connector.store_data_of_yesterday(self.CRYPTO, source)
-                else:
-                    time.sleep(self.DELAY)
+            self.connector.store_data(df, self.CRYPTO)
+            self.logger.info(f"[{source}] Pools retrieved and stored")
+        except Exception as e:
+            self.logger.error(f"[{source}] Error while retrieving and storing pools: {e}")
+            self.logger.warning(f"[{source}] Failed to retrieve new pool data, no data will be stored")

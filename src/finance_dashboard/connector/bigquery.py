@@ -18,33 +18,44 @@ class BigQueryConnector(Connector):
         self.location = location
 
     def store_data(self, df: DataFrame, table_name: str):
-        pandas_gbq.to_gbq(
-            df,
-            destination_table=f"{self.project_id}.{self.schema_id}.{table_name}",
-            if_exists='append',
-            project_id=self.project_id,
-            credentials=self.credentials,
-            table_schema=self.get_table_schema(table_name),
-            progress_bar=False,
-            location=self.location
-        )
-
-    def store_data_of_yesterday(self, table_name: str, source: str):
-        client = bigquery.Client(credentials=self.credentials, location=self.location)
-        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-
-        # Get yesterday's data based on a SQL query
-        query = f"""
-        SELECT *
-        FROM `{self.project_id}.{self.schema_id}.{table_name}`
-        WHERE date = DATE('{yesterday}')
-        AND source = '{source}'
         """
-
-        df = client.query(query).result().to_dataframe()
-        df["date"] = datetime.now().date()
-
-        self.store_data(df, table_name)
+        Upsert data into BigQuery table based on unique combination of date, source, and name.
+        If a record with the same date, source, and name exists, it will be updated.
+        Otherwise, a new record will be inserted.
+        """
+        if df.empty:
+            return
+            
+        client = bigquery.Client(credentials=self.credentials, project=self.project_id, location=self.location)
+        
+        # First, upload the data to a temporary table
+        temp_table_name = f"{table_name}_temp_{int(datetime.now().timestamp())}"
+        temp_table_id = f"{self.project_id}.{self.schema_id}.{temp_table_name}"
+        
+        try:
+            # Upload data to temporary table
+            pandas_gbq.to_gbq(
+                df,
+                destination_table=temp_table_id,
+                if_exists='replace',
+                project_id=self.project_id,
+                credentials=self.credentials,
+                table_schema=self.get_table_schema(table_name),
+                progress_bar=False,
+                location=self.location
+            )
+            
+            # Perform upsert using MERGE statement
+            merge_query = self._build_merge_query(table_name, temp_table_name)
+            query_job = client.query(merge_query)
+            query_job.result()  # Wait for the query to complete
+            
+        finally:
+            # Clean up temporary table
+            try:
+                client.delete_table(temp_table_id)
+            except Exception:
+                pass  # Ignore errors during cleanup
 
     @staticmethod
     def get_table_schema(table_name: str):
@@ -54,6 +65,8 @@ class BigQueryConnector(Connector):
             return schema.stock()
         elif table_name == "crypto":
             return schema.crypto()
+        else:
+            raise ValueError(f"Unknown table name: {table_name}")
 
     def calculate_and_store_totals(self, account_name: str, stock_name: str, crypto_name: str):
         client = bigquery.Client(credentials=self.credentials, location=self.location)
@@ -68,25 +81,49 @@ class BigQueryConnector(Connector):
             )
             """,
             f"""
-            INSERT INTO prd.total (date, total_balance, source)
-            SELECT DATE, SUM(balance) AS total_balance, '{account_name}' AS source
-            FROM {self.schema_id}.bank
-            WHERE date = DATE('{date}')
-            GROUP BY date
+            MERGE `{self.project_id}.{self.schema_id}.total` AS target
+            USING (
+                SELECT DATE, SUM(balance) AS total_balance, '{account_name}' AS source
+                FROM {self.schema_id}.bank
+                WHERE date = DATE('{date}')
+                GROUP BY date
+            ) AS source
+            ON target.date = source.date AND target.source = source.source
+            WHEN MATCHED THEN
+                UPDATE SET total_balance = source.total_balance
+            WHEN NOT MATCHED THEN
+                INSERT (date, total_balance, source)
+                VALUES (source.date, source.total_balance, source.source)
             """,
             f"""
-            INSERT INTO prd.total (date, total_balance, source)
-            SELECT DATE, SUM(portfolio_value) AS total_balance, '{stock_name}' AS source
-            FROM {self.schema_id}.stock
-            WHERE date = DATE('{date}')
-            GROUP BY date
+            MERGE `{self.project_id}.{self.schema_id}.total` AS target
+            USING (
+                SELECT DATE, SUM(portfolio_value) AS total_balance, '{stock_name}' AS source
+                FROM {self.schema_id}.stock
+                WHERE date = DATE('{date}')
+                GROUP BY date
+            ) AS source
+            ON target.date = source.date AND target.source = source.source
+            WHEN MATCHED THEN
+                UPDATE SET total_balance = source.total_balance
+            WHEN NOT MATCHED THEN
+                INSERT (date, total_balance, source)
+                VALUES (source.date, source.total_balance, source.source)
             """,
             f"""
-            INSERT INTO prd.total (date, total_balance, source)
-            SELECT DATE, SUM(portfolio_value) AS total_balance, '{crypto_name}' AS source
-            FROM {self.schema_id}.crypto
-            WHERE date = DATE('{date}')
-            GROUP BY date
+            MERGE `{self.project_id}.{self.schema_id}.total` AS target
+            USING (
+                SELECT DATE, SUM(portfolio_value) AS total_balance, '{crypto_name}' AS source
+                FROM {self.schema_id}.crypto
+                WHERE date = DATE('{date}')
+                GROUP BY date
+            ) AS source
+            ON target.date = source.date AND target.source = source.source
+            WHEN MATCHED THEN
+                UPDATE SET total_balance = source.total_balance
+            WHEN NOT MATCHED THEN
+                INSERT (date, total_balance, source)
+                VALUES (source.date, source.total_balance, source.source)
             """
         ]
 
@@ -94,3 +131,35 @@ class BigQueryConnector(Connector):
         for sql in sql_statements:
             query_job = client.query(sql)
             query_job.result()
+
+    def _build_merge_query(self, table_name: str, temp_table_name: str) -> str:
+        """
+        Build a MERGE query for upsert operations based on the table schema.
+        The unique key is the combination of date, source, and name.
+        Assumes table schema is correct and up to date.
+        """
+        schema = self.get_table_schema(table_name)
+        columns = [field['name'] for field in schema]
+        
+        # Build column lists for the MERGE statement
+        columns_list = ', '.join(columns)
+        insert_values = ', '.join([f"source.{col}" for col in columns])
+        
+        # For the UPDATE part, exclude the unique key columns
+        updateable_columns = [col for col in columns if col not in ['date', 'source', 'name']]
+        update_assignments = ', '.join([f"{col} = source.{col}" for col in updateable_columns])
+        
+        merge_query = f"""
+        MERGE `{self.project_id}.{self.schema_id}.{table_name}` AS target
+        USING `{self.project_id}.{self.schema_id}.{temp_table_name}` AS source
+        ON target.date = source.date 
+           AND target.source = source.source 
+           AND target.name = source.name
+        WHEN MATCHED THEN
+          UPDATE SET {update_assignments}
+        WHEN NOT MATCHED THEN
+          INSERT ({columns_list})
+          VALUES ({insert_values})
+        """
+        
+        return merge_query

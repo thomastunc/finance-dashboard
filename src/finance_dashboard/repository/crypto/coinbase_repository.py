@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 
 from finance_dashboard.repository import Repository
@@ -16,20 +15,15 @@ class CoinbaseRepository(Repository):
             self.logger.error(f"Error while initializing Coinbase: {e}")
 
     def get_and_store_wallets(self, source: str):
-        for i in range(self.ATTEMPTS):
-            try:
-                df = self.coinbase.retrieve_wallet(self.converter.ref_currency)
-                df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
+        try:
+            df = self.coinbase.retrieve_wallet(self.converter.ref_currency)
+            df = self.convert_currencies(df, ["purchase_value", "current_value", "portfolio_value"])
 
-                df.insert(0, "source", source)
-                df.insert(0, "date", datetime.now().date())
+            df.insert(0, "source", source)
+            df.insert(0, "date", datetime.now().date())
 
-                self.connector.store_data(df, self.CRYPTO)
-                self.logger.info(f"[{source}] Wallets retrieved and stored")
-                break
-            except Exception as e:
-                self.logger.error(f"[{source}] Error while retrieving and storing wallets: {e}")
-                if i == self.ATTEMPTS - 1:
-                    self.connector.store_data_of_yesterday(self.CRYPTO, source)
-                else:
-                    time.sleep(self.DELAY)
+            self.connector.store_data(df, self.CRYPTO)
+            self.logger.info(f"[{source}] Wallets retrieved and stored")
+        except Exception as e:
+            self.logger.error(f"[{source}] Error while retrieving and storing wallets: {e}")
+            self.logger.warning(f"[{source}] Failed to retrieve new wallet data, no data will be stored")
