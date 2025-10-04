@@ -97,5 +97,5 @@ class Web3Repository(Repository):
             self.connector.store_data(df, self.CRYPTO)
             self.logger.info(f"[{source}] Solana wallet retrieved and stored")
         except Exception:
-            self.logger.exception("[{source}] Error while retrieving and storing Solana wallet")
+            self.logger.exception(f"[{source}] Error while retrieving and storing Solana wallet")
             self.logger.warning(f"[{source}] Failed to retrieve new Solana wallet data, no data will be stored")
