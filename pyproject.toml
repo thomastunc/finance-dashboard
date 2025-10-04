@@ -1,25 +1,115 @@
-[tool.poetry]
+[project]
 name = "finance-dashboard"
-version = "0.1.1"
+version = "2.0.0"
 description = ""
-authors = ["thomastunc <thomastunc@hotmail.com>"]
 readme = "README.md"
-packages = []
+requires-python = ">=3.11"
 
-[tool.poetry.dependencies]
-python = "^3.11"
-bunq-sdk = "^1.28.0"
-python-dotenv = "^1.1.1"
-google-cloud-bigquery = "^3.38.0"
-pandas-gbq = "^0.29.2"
-google-auth = "^2.40.3"
-bs4 = "^0.0.2"
-currencyconverter = "^0.18.10"
-moralis = "^0.1.49"
-degiro-connector = "^3.0.34"
-protobuf = "^6.32.1"
-coinbase-advanced-py = "^1.8.2"
+dependencies = [
+    "bunq-sdk>=1.28.0",
+    "python-dotenv>=1.1.1",
+    "google-cloud-bigquery>=3.38.0",
+    "pandas-gbq>=0.29.2",
+    "google-auth>=2.40.3",
+    "currencyconverter>=0.18.10",
+    "moralis>=0.1.49",
+    "degiro-connector>=3.0.34",
+    "protobuf>=6.32.1",
+    "coinbase-advanced-py>=1.8.2",
+    "pandas>=2.3.3",
+    "requests>=2.32.5",
+    "pyyaml>=6.0.2",
+]
+
+[project.scripts]
+finance-dashboard = "finance_dashboard.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.0.1",
+    "pre-commit-hooks>=5.0.0",
+    "pytest>=8.3.5",
+    "pytest-cov>=4.1.0,<7",
+    "pytest-mock>=3.11.1,<4",
+    "pytest-xdist>=3.8.0",
+    "deptry>=0.23.0",
+    "ruff>=0.11.11"
+]
+
+[project.urls]
+Repository = "https://github.com/thomastunc/finance-dashboard"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/finance_dashboard"]
+
+[tool.uv]
+package = true
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov",
+    "--cov=utils",
+    "--cov-report", "term-missing",
+    "--cov-config=pyproject.toml",
+    "-n", "auto"
+]
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+relative_files = true
+data_file = '.pytest_report/.coverage'
+
+[tool.ruff]
+line-length = 120
+fix = true
+lint.select = [
+  "YTT",
+  "S",
+  "B",
+  "A",
+  "C4",
+  "T10",
+  "T20",
+  "PT",
+  "SIM",
+  "TCH",
+  "PTH",
+  "I",
+  "N",
+  "E",
+  "W",
+  "F",
+  "PGH",
+  "UP",
+  "RUF",
+  "TRY",
+  "D101",
+  "D102",
+  "D103",
+  "D2",
+  "D3",
+  "D4"
+]
+lint.ignore = [
+  "E501",
+  "E731",
+  "TRY003",
+  "SIM117",
+  "TRY300",
+  "N802",
+  "N803",
+  "D203", 
+  "D213",
+  "S101"
+]
+
+[tool.ruff.format]
+indent-style = "space"

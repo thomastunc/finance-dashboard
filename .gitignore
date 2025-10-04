@@ -1,5 +1,35 @@
+# Environment and configuration
 .env
+.env.local
+*.env
+
+# Pipeline configuration (personalized)
+pipeline.yml
+pipeline.yaml
+*pipeline*.yml
+*pipeline*.yaml
+!examples/pipeline*.yml
+!examples/pipeline*.yaml
+
+# IDE
 .idea
-config
+.vscode/
+
+# Configuration files containing sensitive data
+config/
+
+# Logging
 *.log
-main.py
+logs/*.log
+logs/*
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/

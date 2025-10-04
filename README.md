@@ -1,100 +1,285 @@
-# Finance Dashboard
+# Finance Dashboard 📊
 
-This project is designed for extracting financial data from various sources, e.g. bank accounts, stock providers, and
-cryptocurrency wallets. With the ability to consolidate financial data into a storage service, like Google BigQuery.
+A comprehensive personal finance data aggregation tool that automatically collects and centralizes financial data from multiple sources into Google BigQuery for analysis and visualization.
 
-You can run this code daily to extract the new values of your financial sources and store them in a database. This
-allows you to analyze your financial data over time and gain insights into your financial health. You can also use the
-data for other financial analysis tasks, e.g. budgeting, forecasting, and reporting. For example, I am using this to
-visualize my net worth over time inside Looker Data Studio.
+## 🌟 Features
 
-## Installation and Setup
+- **Multi-Source Data Collection**: Supports banks (Bunq), brokers (DeGiro), crypto exchanges (Coinbase), and Web3 wallets
+- **Flexible Pipeline Configuration**: YAML-based configuration for easy customization
+- **Multiple Accounts**: Support for multiple accounts per source type (e.g., 2 Bunq accounts)
+- **Automated Currency Conversion**: Converts all amounts to your preferred currency
+- **BigQuery Integration**: Stores data in Google BigQuery for powerful analytics
+- **Daily Logging**: Organized log files by date in the `logs/` directory
+- **Error Handling & Notifications**: Comprehensive logging with optional Telegram notifications
+- **Scheduled Execution**: Designed for daily automated runs via cron jobs
 
-To get started with this project, follow these steps:
+## 🚀 Installation and Setup
 
-1. Clone the repository:
+### Prerequisites
 
-   ```shell
+- Python 3.11 or higher
+- [uv](https://docs.astral.sh/uv/) package manager
+- Google Cloud Platform account (for BigQuery)
+
+### Quick Start
+
+1. **Clone the repository:**
+
+   ```bash
    git clone https://github.com/thomastunc/finance-dashboard.git
    cd finance-dashboard
    ```
 
-2. Install the required dependencies using Poetry:
+2. **Install dependencies:**
 
-   ```shell
-   poetry install
+   ```bash
+   uv sync
    ```
 
-3. Create a copy of the `.env.dist` file and name it `.env`:
+3. **Configure environment variables:**
 
-   ```shell
+   ```bash
    cp .env.dist .env
-   ```
-
-   Edit the values in the `.env` file to configure your environment variables according to your needs:
-
-   ```shell
+   # Edit .env with your API keys and configuration
    nano .env
    ```
 
-4. If you want to use GCP like me, Set up Google Cloud Platform (GCP) and the following resources:
+4. **Configure your pipeline:**
 
-    - Create a Google BigQuery dataset for storing the data.
-    - Configure and set up a Google Compute Engine instance where you will run the Python scripts.
-
-5. Copy the `src/template.py` file, which you can use as a base for your own data extraction script:
-
-   ```shell
-   cp src/template.py main.py
+   ```bash
+   cp examples/pipeline-simple.yml pipeline.yml
+   # Edit pipeline.yml to enable/disable sources and configure accounts
+   nano pipeline.yml
    ```
 
+5. **Set up Google Cloud BigQuery:**
 
-6. Customize the `main.py` file to meet your specific data extraction needs. This file acts as a starting point for your
-   financial data extraction:
+   - Create a Google Cloud Project
+   - Enable the BigQuery API
+   - Create a dataset for storing financial data
+   - Download service account credentials to `config/service_account.json`
 
-   ```shell
-   nano main.py
+6. **Run the application:**
+
+   ```bash
+   uv run finance-dashboard --config pipeline.yml
    ```
 
-7. Schedule the Python script to run daily on the Google Compute Engine instance using a cron job:
+## ⚙️ Configuration
 
-   ```shell
-   crontab -e
-   ```
+### Pipeline Configuration (YAML)
 
-   Add a line to schedule your script to run daily:
+The pipeline is configured using a YAML file that defines which data sources to collect and how to process them.
 
-   ```shell
-   0 0 * * * /usr/bin/python3 /path/to/your/main.py
-   ```
+**Example pipeline.yml:**
 
-## Usage
+```yaml
+# Global Settings
+global:
+  log_level: INFO
+  preferred_currency: EUR
 
-To use the Finance Dashboard, follow these steps:
+# Database Configuration
+database:
+  connector: bigquery
+  credentials_path: config/service_account.json
+  project_id: your-project-id
+  schema_id: your-schema-id
+  location: europe-west4
+  table_names:
+    accounts: bank-accounts
+    stocks: stocks
+    crypto: crypto
+    total: total
 
-1. Execute your customized Python script:
+# Logging
+logging:
+  type: telegram  # Options: telegram, console, file
+  telegram:
+    bot_token_env: TELEGRAM_BOT_TOKEN
+    chat_id_env: TELEGRAM_CHAT_ID
+    send_summary: true
+    dashboard_url: https://your-dashboard-url.com
 
-   ```shell
-   python main.py
-   ```
+# Bank Accounts
+bank:
+  enabled: true
+  accounts:
+    - name: Bunq Personal
+      type: bunq
+      api_key_env: BUNQ_API_KEY
+      configuration_file: config/bunq_context.json
 
-2. The script will extract financial data from your configured sources and store it in a connector (e.g. BigQuery).
+# Stock Accounts
+stock:
+  enabled: true
+  accounts:
+    - name: DeGiro
+      type: degiro
+      username_env: DEGIRO_USERNAME
+      password_env: DEGIRO_PASSWORD
+      int_account_env: DEGIRO_INT_ACCOUNT
+      totp_env: DEGIRO_TOTP
 
-3. Analyze and visualize your financial data, for example by connecting Looker Data Studio to your data source.
+# Crypto Accounts
+crypto:
+  enabled: true
+  coinmarketcap_api_key_env: COINMARKETCAP_API_KEY
+  moralis_api_key_env: MORALIS_API_KEY
+  accounts:
+    - name: Coinbase
+      type: coinbase
+      key_file: config/cdp_api_key.json
+    
+    - name: Metamask
+      type: web3
+      wallet_address_env: METAMASK_WALLET_ADDRESS
+      chains:
+        - eth
+        - polygon
+```
 
-## Future Improvements
+### Multiple Accounts
 
-Some areas for potential improvement:
+You can easily add multiple accounts of the same type:
 
-- **Additional Data Sources**: Expand the project to support more external sources for broader financial data coverage.
-- **Additional Connectors**: Add more connectors to support additional data storage services.
-- **Easier Installation and Configuration**: Enhance the setup process to make it even more user-friendly and
-  streamlined.
-- **Historical Data Retrieval**: Implement functionality to retrieve historical data from various sources for
-  comprehensive financial analysis.
+```yaml
+bank:
+  enabled: true
+  accounts:
+    - name: Bunq Personal
+      type: bunq
+      api_key_env: BUNQ_API_KEY_PERSONAL
+      configuration_file: config/bunq_context_personal.json
+    
+    - name: Bunq Business
+      type: bunq
+      api_key_env: BUNQ_API_KEY_BUSINESS
+      configuration_file: config/bunq_context_business.json
+```
 
-## Contributions
+### Configuration Values
 
-Contributions to the Finance Dashboard project are highly encouraged and welcome. If you have ideas, feature requests,
-or code improvements, feel free to create a pull request or open an issue on the project's GitHub repository.
+**Direct values** (stored in pipeline.yml):
+```yaml
+credentials_path: config/service_account.json
+project_id: your-project-id
+schema_id: your-schema-id
+location: europe-west4
+dashboard_url: https://your-dashboard-url.com
+```
+
+**Environment variables** (referenced with `_env` suffix, stored in .env):
+```yaml
+# In pipeline.yml
+api_key_env: BUNQ_API_KEY
+bot_token_env: TELEGRAM_BOT_TOKEN
+```
+```bash
+# In .env file
+BUNQ_API_KEY=your-actual-api-key-here
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+```
+
+## 💻 Usage
+
+### Manual Execution
+
+Run the dashboard manually to collect current financial data:
+
+```bash
+finance-dashboard --config pipeline.yml
+```
+
+### Validate Configuration
+
+Check your configuration without running the pipeline:
+
+```bash
+finance-dashboard --config pipeline.yml --validate-only
+```
+
+### Custom Configuration File
+
+You can use different configuration files for different setups:
+
+```bash
+finance-dashboard --config production.yml
+finance-dashboard --config testing.yml
+```
+
+### Automated Scheduling
+
+For daily automated data collection, set up a cron job:
+
+```bash
+crontab -e
+```
+
+Add this line to run daily at midnight:
+
+```bash
+0 0 * * * cd /path/to/finance-dashboard && uv run finance-dashboard --config pipeline.yml
+```
+
+### Monitoring
+
+- **Logs**: Check daily log files in the `logs/` directory
+- **Telegram**: Receive error notifications via Telegram (if configured)
+- **Daily Summary**: Get a daily summary of your financial portfolio via Telegram (optional)
+- **BigQuery**: Monitor data in your BigQuery dataset
+
+### Daily Summary Feature 📊
+
+The dashboard can automatically send a daily summary to Telegram after each data collection run.
+
+**To enable the daily summary:**
+
+Configure the logging section in your `pipeline.yml`:
+
+```yaml
+logging:
+  type: telegram
+  telegram:
+    bot_token_env: TELEGRAM_BOT_TOKEN
+    chat_id_env: TELEGRAM_CHAT_ID
+    send_summary: true
+    dashboard_url: https://your-dashboard-url.com
+```
+
+- Set `send_summary: true` to enable daily summaries
+- Optionally set `dashboard_url` to include a clickable link in the message
+- Make sure the environment variables `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set in your `.env` file
+
+Example summary message:
+```
+📊 Daily Summary
+
+💰 Total: €50.000
+▲ €500 (+1.01%)
+
+🏦 bank-accounts: €10.000
+▲ €100 (+1.00%)
+
+📈 stocks: €25.000
+🔻 €300 (-1.21%)
+
+🪙 crypto: €15.000
+▲ €100 (+0.67%)
+
+🔗 Open Dashboard
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## ⚠️ Disclaimer
+
+This tool is for personal financial data aggregation only. Always:
+
+- Keep your API keys and credentials secure
+- Review the code before running
+- Use at your own risk
+- Comply with your financial institutions' terms of service
 

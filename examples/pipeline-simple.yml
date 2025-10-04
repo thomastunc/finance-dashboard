@@ -1,0 +1,84 @@
+# Simple Finance Dashboard Pipeline Configuration
+# Copy this file to the root directory as 'pipeline.yml' and customize it
+
+# Global Settings
+global:
+  log_level: INFO
+  preferred_currency: EUR
+  
+# Database Configuration
+database:
+  connector: bigquery
+  credentials_path: config/service_account.json
+  project_id: your-project-id
+  schema_id: your-schema-id
+  location: europe-west4
+  table_names:
+    accounts: bank-accounts
+    stocks: stocks
+    crypto: crypto
+    total: total
+
+# Logging Configuration
+logging:
+  # Available: telegram, console, file
+  type: console
+  telegram:
+    bot_token_env: TELEGRAM_BOT_TOKEN
+    chat_id_env: TELEGRAM_CHAT_ID
+    send_summary: false
+    dashboard_url: https://your-dashboard-url.com
+
+# Bank Accounts
+bank:
+  enabled: true
+  accounts:
+    - name: Bunq
+      type: bunq
+      api_key_env: BUNQ_API_KEY
+      configuration_file: config/bunq_context.json
+
+# Stock Accounts
+stock:
+  enabled: true
+  accounts:
+    - name: DeGiro
+      type: degiro
+      username_env: DEGIRO_USERNAME
+      password_env: DEGIRO_PASSWORD
+      int_account_env: DEGIRO_INT_ACCOUNT
+      totp_env: DEGIRO_TOTP
+      # Optional custom table names for this account
+      stock_table_name: DeGiro  # Will be appended to account name
+
+# Crypto Accounts
+crypto:
+  enabled: true
+  # API keys for crypto price data
+  coinmarketcap_api_key_env: COINMARKETCAP_API_KEY
+  moralis_api_key_env: MORALIS_API_KEY
+  
+  accounts:
+    # Coinbase Exchange
+    - name: Coinbase
+      type: coinbase
+      key_file: config/cdp_api_key.json
+    
+    # Web3 Wallets
+    - name: Metamask
+      type: web3
+      wallet_address_env: METAMASK_WALLET_ADDRESS
+      chains:
+        - eth
+        - polygon
+    
+    - name: Coinbase Wallet
+      type: web3
+      wallet_address_env: COINBASE_WALLET_ADDRESS
+      chains:
+        - eth
+    
+    - name: Helium Wallet
+      type: web3-solana
+      wallet_address_env: HELIUM_WALLET_ADDRESS
+      network: mainnet
