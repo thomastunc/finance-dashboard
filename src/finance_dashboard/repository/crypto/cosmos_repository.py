@@ -62,7 +62,7 @@ class CosmosRepository(Repository):
             self.connector.store_data(df, self.CRYPTO)
             self.logger.info(f"[{source}] Wallet retrieved and stored")
         except Exception:
-            self.logger.exception("[{source}] Error while retrieving and storing wallet")
+            self.logger.exception(f"[{source}] Error while retrieving and storing wallet")
             self.logger.warning(f"[{source}] Failed to retrieve new wallet data, no data will be stored")
 
     def get_and_store_pools(self, source: str, address: str):
