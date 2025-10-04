@@ -223,7 +223,7 @@ class FinanceDashboard:
             self.logger.info(f"Collecting {account_name} stock data")
             repository = DeGiroRepository(self._get_legacy_config(), username, password, int_account, totp)
             repository.get_and_store_stocks(account_name)
-            repository.get_and_store_account("Flatex")
+            repository.get_and_store_account(account_name)
             repository.logout()
             self.logger.info(f"{account_name} data collection completed")
         except Exception:
