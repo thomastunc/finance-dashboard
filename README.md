@@ -42,10 +42,10 @@ To get started with this project, follow these steps:
     - Create a Google BigQuery dataset for storing the data.
     - Configure and set up a Google Compute Engine instance where you will run the Python scripts.
 
-5. Copy the `src/template.py` file, which you can use as a base for your own data extraction script:
+5. Copy the `template.py` file, which you can use as a base for your own data extraction script:
 
    ```shell
-   cp src/template.py main.py
+   cp template.py main.py
    ```
 
 

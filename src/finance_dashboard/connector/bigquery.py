@@ -5,8 +5,8 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 from pandas import DataFrame
 
-from src import schema
-from src.connector import Connector
+from finance_dashboard import schema
+from finance_dashboard.connector import Connector
 
 
 class BigQueryConnector(Connector):

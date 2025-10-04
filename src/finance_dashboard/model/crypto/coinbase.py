@@ -2,7 +2,7 @@ import pandas as pd
 
 from coinbase.rest import RESTClient
 
-from src.model.crypto import Crypto
+from finance_dashboard.model.crypto import Crypto
 
 
 class Coinbase(Crypto):

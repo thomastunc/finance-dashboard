@@ -1,8 +1,8 @@
 import time
 from datetime import datetime
 
-from src.model.stock.degiro import DeGiro
-from src.repository import Repository
+from finance_dashboard.model.stock.degiro import DeGiro
+from finance_dashboard.repository import Repository
 
 
 class DeGiroRepository(Repository):

@@ -3,14 +3,14 @@ import os
 from currency_converter import CurrencyConverter
 from dotenv import load_dotenv
 
-from src.connector.bigquery import BigQueryConnector
-from src.logger.telegram import TelegramLogger
+from finance_dashboard.connector.bigquery import BigQueryConnector
+from finance_dashboard.logger.telegram import TelegramLogger
 
-from src.repository.bank.bunq_repository import BunqRepository
-from src.repository.stock.degiro_repository import DeGiroRepository
-from src.repository.crypto.web3_repository import Web3Repository
-from src.repository.crypto.coinbase_repository import CoinbaseRepository
-from src.repository.crypto.cosmos_repository import CosmosRepository
+from finance_dashboard.repository.bank.bunq_repository import BunqRepository
+from finance_dashboard.repository.stock.degiro_repository import DeGiroRepository
+from finance_dashboard.repository.crypto.web3_repository import Web3Repository
+from finance_dashboard.repository.crypto.coinbase_repository import CoinbaseRepository
+from finance_dashboard.repository.crypto.cosmos_repository import CosmosRepository
 
 from multiprocessing import Process
 

@@ -3,7 +3,7 @@ import math
 import pandas as pd
 from moralis import sol_api, evm_api
 
-from src.model.crypto import Crypto
+from finance_dashboard.model.crypto import Crypto
 
 
 class Web3(Crypto):

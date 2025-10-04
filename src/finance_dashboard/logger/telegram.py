@@ -1,7 +1,7 @@
 import logging
 import requests
 
-from src.logger import Logger
+from finance_dashboard.logger import Logger
 
 
 class TelegramLogger(Logger):

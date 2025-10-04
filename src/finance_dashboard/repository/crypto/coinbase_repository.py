@@ -1,8 +1,8 @@
 import time
 from datetime import datetime
 
-from src.repository import Repository
-from src.model.crypto.coinbase import Coinbase
+from finance_dashboard.repository import Repository
+from finance_dashboard.model.crypto.coinbase import Coinbase
 
 
 class CoinbaseRepository(Repository):

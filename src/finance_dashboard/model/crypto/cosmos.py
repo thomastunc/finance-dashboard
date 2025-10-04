@@ -5,7 +5,7 @@ from urllib.parse import quote
 import pandas as pd
 import requests
 
-from src.model.crypto import Crypto
+from finance_dashboard.model.crypto import Crypto
 
 
 class Cosmos(Crypto):
